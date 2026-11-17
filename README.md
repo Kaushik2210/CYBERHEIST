@@ -3,6 +3,7 @@
 [![tests](https://github.com/Kaushik2210/CYBERHEIST/actions/workflows/tests.yml/badge.svg)](https://github.com/Kaushik2210/CYBERHEIST/actions/workflows/tests.yml)
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)
 ![No dependencies](https://img.shields.io/badge/dependencies-stdlib%20only-brightgreen)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
 
 **THINK LIKE A HACKER. MOVE LIKE A GHOST. LEAVE NO TRACE.**
 
@@ -168,6 +169,10 @@ option (using small test missions, since the campaign is not installed).
 - Time is measured in ticks, not seconds; nothing happens while you think.
 - Box-drawing characters fall back to ASCII when the terminal encoding can't print
   them, but colour support depends on the terminal.
+
+## License
+
+[MIT](LICENSE) © 2026 Kaushik
 
 ## Engineering decisions
 
