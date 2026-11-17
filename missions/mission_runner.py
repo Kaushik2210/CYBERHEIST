@@ -188,15 +188,25 @@ class MissionContext:
 
 # -- stage players -------------------------------------------------------------------
 def play_firewall(ctx: MissionContext, params: dict[str, Any]) -> None:
-    """Interactive firewall stage."""
+    """Interactive firewall stage.
+
+    Difficulty decides how tight the lock is: Normal and Hard give exactly the solver's
+    guess count plus a small margin, and Hard lets a rule appear more than once.
+    """
     d = ctx.diff
     p = firewall.generate(ctx.rng.fork("firewall"), params.get("pool", 6),
                           params.get("length", 4) + d["code_length_delta"],
-                          params.get("attempts", 8) + d["attempt_bonus"])
+                          params.get("attempts", 8) + d["attempt_bonus"],
+                          repeats=bool(params.get("repeats", d.get("firewall_repeats", False))),
+                          margin=params.get("margin", d.get("firewall_margin")))
     ctx.puzzle, ctx.stage_kind = p, "firewall"
     ctx.objective = f"Crack the {p.length}-rule firewall chain"
-    ctx.help_text = "Enter rule numbers in order, e.g. '1 4 2 6'. Exact = right rule, right slot."
-    ctx.ui.box("FIREWALL", [f"{i + 1}. {r}" for i, r in enumerate(p.pool)])
+    ctx.help_text = ("Enter rule numbers in order, e.g. '1 4 2 6'. Exact = right rule, right slot."
+                     + (" Rules can repeat." if p.repeats else ""))
+    notes = [ctx.ui.paint(f"{p.length} slots, {p.attempts} attempts"
+                          + (". Rules MAY REPEAT in this chain." if p.repeats else ". Each rule used once."),
+                          "warn" if p.repeats else "dim")]
+    ctx.ui.box("FIREWALL", [f"{i + 1}. {r}" for i, r in enumerate(p.pool)] + [""] + notes)
     while not p.solved:
         if p.remaining <= 0:
             raise MissionFailed("Firewall locked out: no attempts left.")
@@ -209,7 +219,10 @@ def play_firewall(ctx: MissionContext, params: dict[str, Any]) -> None:
         exact, partial = p.guess(parsed)
         ctx.spend()
         if p.solved:
-            ctx.ui.ok("Firewall chain accepted.")
+            used = len(p.history)
+            verdict = ("You beat the solver!" if used < p.par
+                       else "Matched the solver." if used == p.par else "The solver did it faster.")
+            ctx.ui.ok(f"Firewall chain accepted in {used} probe(s). Solver par: {p.par}. {verdict}")
         else:
             ctx.ui.say(f"  exact {exact}  partial {partial}", "accent")
             ctx.wrong()

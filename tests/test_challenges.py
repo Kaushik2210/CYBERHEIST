@@ -236,6 +236,34 @@ def test_firewall_feedback():
     assert firewall.score((0, 1, 2, 3), (4, 5, 6, 7)) == (0, 0)
 
 
+def test_firewall_feedback_with_repeated_rules():
+    assert firewall.score((0, 0, 1, 1), (0, 1, 0, 1)) == (2, 2)
+    assert firewall.score((0, 0, 0, 1), (0, 0, 0, 0)) == (3, 0)
+    assert firewall.score((2, 2, 3, 3), (3, 3, 2, 2)) == (0, 4)
+    assert firewall.score((1, 2, 3, 4), (1, 1, 1, 1)) == (1, 0)
+
+
+def test_firewall_repeats_parse_and_tight_attempts():
+    p = firewall.generate(GameRNG(3), pool_size=6, length=4, attempts=99, repeats=True, margin=1)
+    assert p.parse("1 1 2 2") == (0, 0, 1, 1)
+    assert p.attempts == p.par + 1
+    loose = firewall.generate(GameRNG(3), pool_size=6, length=4, attempts=99)
+    assert isinstance(loose.parse("1 1 2 2"), str) and loose.attempts == 99
+
+
+def test_firewall_tight_repeats_solvable_500_seeds():
+    for seed in range(500):
+        p = firewall.generate(GameRNG(seed), pool_size=6, length=4, attempts=0, repeats=True, margin=0)
+        assert _autoplay(p), f"tight repeat firewall unsolvable at seed {seed}"
+        assert len(p.history) == p.par
+
+
+def test_firewall_hard_repeats_length5_solvable():
+    for seed in range(15):
+        p = firewall.generate(GameRNG(seed), pool_size=6, length=5, attempts=0, repeats=True, margin=1)
+        assert _autoplay(p) and len(p.history) <= p.attempts
+
+
 def test_firewall_parse_rejects_bad_input():
     p = firewall.generate(GameRNG(1), pool_size=6, length=4, attempts=10)
     assert isinstance(p.parse("1 2 3"), str)

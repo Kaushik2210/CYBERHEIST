@@ -93,6 +93,18 @@ def test_layered_stage_with_unhex_and_shift():
     assert "Hex layer removed" in io.text() and ctx.meter.peak == 4
 
 
+def test_firewall_tightness_follows_difficulty():
+    for difficulty, margin, repeats in (("easy", None, False), ("normal", 2, False), ("hard", 1, True)):
+        io = ScriptedIO(autopilot=True)
+        ctx = make_ctx(io, 9, difficulty=difficulty, grace_ticks=300, max_ticks=600)
+        run_stages(ctx, [{"type": "firewall", "params": {"pool": 6, "length": 4, "attempts": 8}}])
+        p = firewall.generate(GameRNG(9).fork("firewall"), 6, 4 + ctx.diff["code_length_delta"],
+                              8 + ctx.diff["attempt_bonus"], repeats=repeats, margin=margin)
+        out = io.text()
+        assert f"{p.attempts} attempts" in out and f"Solver par: {p.par}" in out
+        assert ("MAY REPEAT" in out) == repeats
+
+
 def test_neural_accelerator_cuts_tick_costs():
     ctx = make_ctx(ScriptedIO(), neural=True)
     ctx.spend("scan")

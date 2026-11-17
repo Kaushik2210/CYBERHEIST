@@ -9,9 +9,12 @@
     "sound": false
   },
   "difficulty": {
-    "easy":   {"attempt_bonus": 3,  "code_length_delta": -1, "grace_bonus": 15, "detection_mult": 0.75, "reward_mult": 0.8},
-    "normal": {"attempt_bonus": 0,  "code_length_delta": 0,  "grace_bonus": 0,  "detection_mult": 1.0,  "reward_mult": 1.0},
-    "hard":   {"attempt_bonus": -2, "code_length_delta": 1,  "grace_bonus": -10, "detection_mult": 1.25, "reward_mult": 1.35}
+    "easy":   {"attempt_bonus": 3,  "code_length_delta": -1, "grace_bonus": 15, "detection_mult": 0.75, "reward_mult": 0.8,
+               "firewall_margin": null, "firewall_repeats": false},
+    "normal": {"attempt_bonus": 0,  "code_length_delta": 0,  "grace_bonus": 0,  "detection_mult": 1.0,  "reward_mult": 1.0,
+               "firewall_margin": 2, "firewall_repeats": false},
+    "hard":   {"attempt_bonus": -2, "code_length_delta": 1,  "grace_bonus": -10, "detection_mult": 1.25, "reward_mult": 1.35,
+               "firewall_margin": 1, "firewall_repeats": true}
   },
   "detection": {
     "wrong_guess": 8,

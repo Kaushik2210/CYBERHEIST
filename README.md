@@ -103,7 +103,7 @@ Between stages: ENTER continues, `P` opens the pause menu (resume or abort).
 |---|---|
 | Tutorial shell | `help`, `scan`, `connect <host>`, `ls`, `cat <file>`, `status` |
 | Network | `scan`, `map`, `routes`, `route N` |
-| Firewall | rule numbers in order, e.g. `1 4 2 6` |
+| Firewall | rule numbers in order, e.g. `1 4 2 6` (on Hard a rule may repeat: `1 1 4 2`) |
 | Cipher lab | the plaintext; `hint`, `shift N` (Caesar, layered), `apply KEY` (Vigenère), `unhex` (layered) |
 | Password | a full guess matching the pattern; marks are `+` right place, `~` elsewhere, `.` absent |
 | Escape | an option number, or the displayed code |
@@ -181,6 +181,13 @@ pull request.
 [MIT](LICENSE) © 2026 Kaushik
 
 ## Engineering decisions
+
+- **Tight firewall on Normal and Hard.** Each lock is played first by the built-in
+  solver, and its guess count is the lock's *par*. Easy gives at least the mission's
+  attempt count. Normal gives par + 2, Hard gives par + 1 and lets a rule appear more
+  than once in the chain (about 5× more possible chains). When you crack it, the game
+  shows your probes against the solver's par. Set per difficulty in `settings.json`
+  (`firewall_margin`, `firewall_repeats`) or per stage (`margin`, `repeats`).
 
 - **Tough cipher lab on Normal and Hard.** The Vigenère keyword is hidden: you get
   the first word of the message and the key length, and work the key out yourself.

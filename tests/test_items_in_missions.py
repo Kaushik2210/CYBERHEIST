@@ -39,7 +39,8 @@ def test_decoder_and_override_on_firewall():
                         owned=["quantum_decoder", "emergency_override"], seed=seed)
     run_stages(ctx, [{"type": "firewall", "params": {"pool": 6, "length": 4, "attempts": 8}}])
     out = io.text()
-    assert "Decoder: slot" in out and "Override: +1 attempt (9 left)" in out
+    expected_left = p.par + CFG["difficulty"]["normal"]["firewall_margin"] + 1   # tight lock + override
+    assert "Decoder: slot" in out and f"Override: +1 attempt ({expected_left} left)" in out
     assert inv.uses("quantum_decoder") == 2 and not inv.owns("emergency_override")
     assert ctx.items_used == ["quantum_decoder", "emergency_override"]
 
