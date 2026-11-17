@@ -273,14 +273,22 @@ def play_cipher(ctx: MissionContext, params: dict[str, Any]) -> None:
 
 
 def play_password(ctx: MissionContext, params: dict[str, Any]) -> None:
-    """Interactive password stage."""
+    """Interactive password stage.
+
+    Difficulty sets the digit-range width, whether a digit-sum clue is given, whether
+    the word list is hidden behind letter clues, and how tight the attempt limit is.
+    """
+    d = ctx.diff
     p = password.generate(ctx.rng.fork("password"), params.get("words", 8), params.get("digits", 2),
-                          params.get("symbols", 4), params.get("range", 3),
-                          params.get("attempts", 6) + ctx.diff["attempt_bonus"])
+                          params.get("symbols", 4), params.get("range", d.get("password_range", 3)),
+                          params.get("attempts", 6) + d["attempt_bonus"],
+                          hide_words=bool(params.get("hide_words", d.get("password_hide_words", False))),
+                          sum_clue=bool(params.get("sum_clue", d.get("password_sum_clue", False))),
+                          margin=params.get("margin", d.get("password_margin")))
     ctx.puzzle, ctx.stage_kind = p, "password"
     ctx.objective = "Recover the passphrase"
     ctx.help_text = "Marks: + right place, ~ elsewhere in the password, . not in it."
-    ctx.ui.box("PASSPHRASE", p.clues())
+    ctx.ui.box("PASSPHRASE", p.clues() + [ctx.ui.paint(f"{p.attempts} attempts.", "dim")])
     while not p.solved:
         if p.remaining <= 0:
             raise MissionFailed("Account locked: no attempts left.")
@@ -293,7 +301,8 @@ def play_password(ctx: MissionContext, params: dict[str, Any]) -> None:
         marks = p.guess(raw)
         ctx.spend()
         if p.solved:
-            ctx.ui.ok("Passphrase accepted.")
+            used = len(p.history)
+            ctx.ui.ok(f"Passphrase accepted in {used} guess(es). Solver par: {p.par}.")
         else:
             ctx.ui.say(f"  {raw.upper()}\n  {marks}", "accent")
             ctx.wrong()

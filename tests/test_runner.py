@@ -153,6 +153,18 @@ def test_failing_a_node_lock_fails_the_mission():
         run_stages(ctx, [{"type": "network", "params": {"hidden": 1}}])
 
 
+def test_password_toughness_follows_difficulty():
+    for difficulty in ("easy", "normal", "hard"):
+        io = ScriptedIO(autopilot=True)
+        ctx = make_ctx(io, 3, difficulty=difficulty, grace_ticks=300, max_ticks=600)
+        run_stages(ctx, [{"type": "password", "params": {}}])
+        out = io.text()
+        assert ("add up to" in out) == (difficulty != "easy")
+        assert ("list not recovered" in out) == (difficulty == "hard")
+        assert ("Base word is one of" in out) == (difficulty != "hard")
+        assert "Solver par:" in out
+
+
 def test_neural_accelerator_cuts_tick_costs():
     ctx = make_ctx(ScriptedIO(), neural=True)
     ctx.spend("scan")

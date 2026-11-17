@@ -10,11 +10,14 @@
   },
   "difficulty": {
     "easy":   {"attempt_bonus": 3,  "code_length_delta": -1, "grace_bonus": 15, "detection_mult": 0.75, "reward_mult": 0.8,
-               "firewall_margin": null, "firewall_repeats": false},
+               "firewall_margin": null, "firewall_repeats": false,
+               "password_range": 3, "password_sum_clue": false, "password_hide_words": false, "password_margin": null},
     "normal": {"attempt_bonus": 0,  "code_length_delta": 0,  "grace_bonus": 0,  "detection_mult": 1.0,  "reward_mult": 1.0,
-               "firewall_margin": 2, "firewall_repeats": false},
+               "firewall_margin": 2, "firewall_repeats": false,
+               "password_range": 5, "password_sum_clue": true, "password_hide_words": false, "password_margin": 2},
     "hard":   {"attempt_bonus": -2, "code_length_delta": 1,  "grace_bonus": -10, "detection_mult": 1.25, "reward_mult": 1.35,
-               "firewall_margin": 1, "firewall_repeats": true}
+               "firewall_margin": 1, "firewall_repeats": true,
+               "password_range": 6, "password_sum_clue": true, "password_hide_words": true, "password_margin": 1}
   },
   "detection": {
     "wrong_guess": 8,

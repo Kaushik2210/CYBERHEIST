@@ -156,6 +156,41 @@ def test_password_solvable_500_seeds():
         assert _autoplay_pw(pw.generate(GameRNG(seed))), f"password unsolvable at seed {seed}"
 
 
+def _secret_parts(p):
+    word = "".join(c for c, m in zip(p.secret, p.mask) if m == "W")
+    digits = [int(c) for c, m in zip(p.secret, p.mask) if m == "D"]
+    return word, digits
+
+
+def test_tough_password_normal_settings_solvable_500_seeds():
+    for seed in range(500):
+        p = pw.generate(GameRNG(seed), range_width=5, sum_clue=True, margin=2)
+        word, digits = _secret_parts(p)
+        assert p.digit_sum == sum(digits) and f"add up to {sum(digits)}" in "\n".join(p.clues())
+        assert all(lo <= d <= hi for d, (lo, hi) in zip(digits, p.digit_ranges))
+        assert p.attempts == p.par + 2
+        assert _autoplay_pw(p), f"normal-tough password unsolvable at seed {seed}"
+
+
+def test_hidden_word_list_clues_are_true_and_fair_500_seeds():
+    for seed in range(500):
+        p = pw.generate(GameRNG(seed), digits=3, range_width=6, sum_clue=True, hide_words=True, margin=1)
+        word, _ = _secret_parts(p)
+        text = "\n".join(p.clues())
+        assert "list not recovered" in text and word not in text      # the answer is never printed
+        assert 2 <= len(p.word_clues) <= 5
+        assert word in p.words and 2 <= len(p.words)                   # clues never give it away outright
+        assert p.attempts == p.par + 1
+        assert _autoplay_pw(p), f"hidden-list password unsolvable at seed {seed}"
+
+
+def test_hidden_word_clues_define_exactly_the_candidate_pool():
+    for seed in range(500):
+        p = pw.generate(GameRNG(seed), hide_words=True)
+        survivors = [w for w in pw.WORDLIST if all(pw.matches_clue(w, c) for c in p.word_clues)]
+        assert survivors == p.words, f"clues and solver pool disagree at seed {seed}"
+
+
 def test_password_hard_params_solvable():
     for seed in range(200):
         p = pw.generate(GameRNG(seed), word_count=16, digits=3, symbol_count=6, range_width=5, attempts=5)

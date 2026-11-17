@@ -182,6 +182,14 @@ pull request.
 
 ## Engineering decisions
 
+- **Tougher passwords on Normal and Hard.** Normal widens each digit range to 6 values,
+  adds a "the digits add up to N" clue, and gives the solver's guess count plus 2
+  attempts. Hard hides the word list: you get 2–5 letter clues ("Contains E", "Ends
+  with N", "No letter appears twice") that narrow the game's dictionary to a few
+  words, never to one. Hard also uses 7-value digit ranges and par + 1 attempts. The
+  game shows your guesses against the solver's par. Settings are in `settings.json`
+  (`password_*`) or per stage.
+
 - **Network trade-offs on Normal and Hard.** Each `scan` adds 3% detection, and a
   deep scan that turns up a hidden node adds 6%. The safest route always runs through
   a locked node, and taking it means cracking that node's 3-rule access chain first.
