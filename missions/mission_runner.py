@@ -9,7 +9,7 @@ from challenges.detection import DetectionMeter
 from core.rng import GameRNG
 from core.state import MissionAborted, MissionFailed
 from interface import screens
-from interface.ui import UI
+from interface.ui import UI, visible_len
 from systems.inventory import Inventory
 from systems.random_events import EventEngine
 
@@ -95,11 +95,14 @@ class MissionContext:
 
     # -- HUD & input ---------------------------------------------------------------
     def hud(self) -> None:
-        """Print the one-line heads-up display."""
+        """Print the one-line heads-up display, kept within 80 columns."""
         m = self.meter
-        bar = self.ui.bar(m.level, 100, 20, m.role)
-        self.ui.say(f"DET {bar} {m.level:5.1f}% {self.ui.paint(m.status, m.role)} | "
-                    f"TICKS {self.ticks:.0f}/{self.max_ticks} (grace {self.grace}) | {self.objective}")
+        bar = self.ui.bar(m.level, 100, 12, m.role)
+        left = (f"DET {bar} {m.level:3.0f}% {self.ui.paint(f'{m.status:<8}', m.role)} | "
+                f"T {self.ticks:.0f}/{self.max_ticks} | ")
+        room = 80 - visible_len(left)
+        goal = self.objective if len(self.objective) <= room else self.objective[:room - 3] + "..."
+        self.ui.say(left + self.ui.paint(goal, "dim"))
 
     def ask(self, label: str, auto: Callable[[], str] | None = None) -> str:
         """Prompt, handling the shared commands: '?', 'status', 'b'."""

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="708" height="328" viewBox="0 0 708 328">
+<rect width="100%" height="100%" rx="10" fill="#0b0f14"/>
+<rect width="100%" height="30" rx="10" fill="#161b22"/>
+<rect y="20" width="100%" height="10" fill="#161b22"/>
+<circle cx="18" cy="15" r="6" fill="#ff5f56"/><circle cx="38" cy="15" r="6" fill="#ffbd2e"/><circle cx="58" cy="15" r="6" fill="#27c93f"/>
+<text x="354" y="19" fill="#8b949e" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" text-anchor="middle">cyberheist — Black market</text>
+<g font-family="Cascadia Mono, Consolas, DejaVu Sans Mono, Menlo, monospace" font-size="14" xml:space="preserve">
+<text y="54.4"><tspan x="18.0" textLength="655.2" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">╔═ BLACK MARKET ═════════════════════════════════════════════════════════════╗</tspan></text>
+<text y="72.4"><tspan x="18.0" textLength="8.4" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">║</tspan><tspan x="26.4" textLength="638.4" lengthAdjust="spacingAndGlyphs" fill="#c9d1d9"> Credits: 4,250                                                             </tspan><tspan x="664.8" textLength="8.4" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">║</tspan></text>
+<text y="90.4"><tspan x="18.0" textLength="8.4" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">║</tspan><tspan x="26.4" textLength="638.4" lengthAdjust="spacingAndGlyphs" fill="#c9d1d9"> Commands: buy N, equip N, unequip N, b. Max 2 passives equipped.           </tspan><tspan x="664.8" textLength="8.4" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">║</tspan></text>
+<text y="108.4"><tspan x="18.0" textLength="655.2" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">╚════════════════════════════════════════════════════════════════════════════╝</tspan></text>
+<text y="126.4"><tspan x="18.0" textLength="495.6" lengthAdjust="spacingAndGlyphs" fill="#f0f6fc">#  ITEM                PRICE     KIND        USES  OWNED   </tspan></text>
+<text y="144.4"><tspan x="18.0" textLength="495.6" lengthAdjust="spacingAndGlyphs" fill="#2ea043">-  ------------------  --------  ----------  ----  --------</tspan></text>
+<text y="162.4"><tspan x="18.0" textLength="495.6" lengthAdjust="spacingAndGlyphs" fill="#c9d1d9">1  Ghost Proxy         2,000 cr  passive     1     EQUIPPED</tspan></text>
+<text y="180.4"><tspan x="18.0" textLength="495.6" lengthAdjust="spacingAndGlyphs" fill="#c9d1d9">2  Cipher Toolkit      800 cr    consumable  5     x5      </tspan></text>
+<text y="198.4"><tspan x="18.0" textLength="495.6" lengthAdjust="spacingAndGlyphs" fill="#c9d1d9">3  Neural Accelerator  2,500 cr  passive     1     -       </tspan></text>
+<text y="216.4"><tspan x="18.0" textLength="495.6" lengthAdjust="spacingAndGlyphs" fill="#c9d1d9">4  Signal Mask         1,800 cr  passive     1     -       </tspan></text>
+<text y="234.4"><tspan x="18.0" textLength="495.6" lengthAdjust="spacingAndGlyphs" fill="#c9d1d9">5  Quantum Decoder     1,200 cr  consumable  3     x3      </tspan></text>
+<text y="252.4"><tspan x="18.0" textLength="495.6" lengthAdjust="spacingAndGlyphs" fill="#c9d1d9">6  Data Scanner        1,000 cr  consumable  3     -       </tspan></text>
+<text y="270.4"><tspan x="18.0" textLength="495.6" lengthAdjust="spacingAndGlyphs" fill="#c9d1d9">7  Emergency Override  1,500 cr  consumable  1     -       </tspan></text>
+<text y="288.4"><tspan x="18.0" textLength="67.2" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">market&gt; </tspan><tspan x="85.2" textLength="42.0" lengthAdjust="spacingAndGlyphs" fill="#f0f6fc">buy 3</tspan></text>
+<text y="306.4"><tspan x="18.0" textLength="361.2" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">[+] Bought Neural Accelerator for 2,500 cr.</tspan></text>
+</g></svg>

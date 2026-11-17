@@ -10,10 +10,33 @@ An ASCII cyberpunk puzzle game for the terminal. Everything is fictional and run
 locally: every "network", password and file is generated game data. There is no
 networking and no real tool or target anywhere in the code.
 
+<p align="center">
+  <img src="docs/screenshots/01-boot.svg" alt="Boot sequence and CYBERHEIST logo" width="720">
+</p>
+
 > **Status:** the engine, all challenge types except extraction, the systems and the
 > full menu are built and tested. The 10-mission campaign (`missions/mission_data.py`)
 > and the data-extraction challenge (`challenges/extraction.py`) are **not written
 > yet**. See [Known limitations](#known-limitations).
+
+## Screenshots
+
+Captured from real game runs with `python tools/screenshots.py`.
+
+| | |
+|---|---|
+| ![Main menu](docs/screenshots/02-main-menu.svg) | ![Firewall puzzle](docs/screenshots/03-firewall.svg) |
+| **Main menu** | **Firewall:** Mastermind-style rule chain with the detection HUD |
+| ![Cipher lab](docs/screenshots/04-cipher-lab.svg) | ![Password recovery](docs/screenshots/06-password.svg) |
+| **Cipher lab:** hints and the `apply KEY` tool | **Password:** pattern clues and per-position marks |
+| ![Network mapping](docs/screenshots/05-network-map.svg) | ![Escape sequence](docs/screenshots/07-escape.svg) |
+| **Network:** scan layer by layer, then pick a route | **Escape:** beat the tick countdown |
+| ![Black market](docs/screenshots/08-black-market.svg) | ![Hacker profile](docs/screenshots/09-profile.svg) |
+| **Black market** | **Profile and statistics** |
+
+<p align="center">
+  <img src="docs/screenshots/10-mission-complete.svg" alt="Mission complete with rewards and an achievement" width="720">
+</p>
 
 ## Setup
 

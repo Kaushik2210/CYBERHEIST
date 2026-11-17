@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="708" height="256" viewBox="0 0 708 256">
+<rect width="100%" height="100%" rx="10" fill="#0b0f14"/>
+<rect width="100%" height="30" rx="10" fill="#161b22"/>
+<rect y="20" width="100%" height="10" fill="#161b22"/>
+<circle cx="18" cy="15" r="6" fill="#ff5f56"/><circle cx="38" cy="15" r="6" fill="#ffbd2e"/><circle cx="58" cy="15" r="6" fill="#27c93f"/>
+<text x="354" y="19" fill="#8b949e" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" text-anchor="middle">cyberheist — Escape sequence</text>
+<g font-family="Cascadia Mono, Consolas, DejaVu Sans Mono, Menlo, monospace" font-size="14" xml:space="preserve">
+<text y="54.4"><tspan x="18.0" textLength="655.2" lengthAdjust="spacingAndGlyphs" fill="#2ea043">══════════════════════════════════════════════════════════════════════════════</tspan></text>
+<text y="72.4"><tspan x="18.0" textLength="193.2" lengthAdjust="spacingAndGlyphs" fill="#f0f6fc">STAGE 1/1: Exfiltration</tspan></text>
+<text y="90.4"><tspan x="18.0" textLength="310.8" lengthAdjust="spacingAndGlyphs" fill="#ffd866">[12 ticks] Retype the exit code: ECGB</tspan></text>
+<text y="108.4"><tspan x="18.0" textLength="67.2" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">escape&gt; </tspan><tspan x="85.2" textLength="33.6" lengthAdjust="spacingAndGlyphs" fill="#f0f6fc">ECGB</tspan></text>
+<text y="126.4"><tspan x="18.0" textLength="310.8" lengthAdjust="spacingAndGlyphs" fill="#ffd866">[10 ticks] Retype the exit code: XDDF</tspan></text>
+<text y="144.4"><tspan x="18.0" textLength="67.2" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">escape&gt; </tspan><tspan x="85.2" textLength="33.6" lengthAdjust="spacingAndGlyphs" fill="#f0f6fc">XDDF</tspan></text>
+<text y="162.4"><tspan x="18.0" textLength="302.4" lengthAdjust="spacingAndGlyphs" fill="#ffd866">[8 ticks] Retype the exit code: KM3V</tspan></text>
+<text y="180.4"><tspan x="18.0" textLength="67.2" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">escape&gt; </tspan><tspan x="85.2" textLength="33.6" lengthAdjust="spacingAndGlyphs" fill="#f0f6fc">KM3V</tspan></text>
+<text y="198.4"><tspan x="18.0" textLength="302.4" lengthAdjust="spacingAndGlyphs" fill="#ffd866">[6 ticks] Retype the exit code: 7VN7</tspan></text>
+<text y="216.4"><tspan x="18.0" textLength="67.2" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">escape&gt; </tspan><tspan x="85.2" textLength="33.6" lengthAdjust="spacingAndGlyphs" fill="#f0f6fc">7VN7</tspan></text>
+<text y="234.4"><tspan x="18.0" textLength="126.0" lengthAdjust="spacingAndGlyphs" fill="#3fff8b">[+] Clean exit.</tspan></text>
+</g></svg>

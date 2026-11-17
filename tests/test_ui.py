@@ -67,6 +67,19 @@ def test_screens_fit_80_columns():
     assert max(visible_len(line) for line in io.output) <= 80
 
 
+def test_mission_hud_fits_80_columns():
+    from core.rng import GameRNG
+    from missions.mission_runner import MissionContext
+    io = ScriptedIO()
+    ctx = MissionContext(UI(io, Theme(color=True, unicode=True), animations=False), GameRNG(1), CFG,
+                         max_ticks=1000)
+    ctx.objective = "A very long objective description that would never fit on one terminal line at all"
+    ctx.ticks, ctx.meter.level = 999, 99.5
+    ctx.hud()
+    line = io.output[-1]
+    assert visible_len(line) <= 80 and line.endswith("...") and "CRITICAL" in line
+
+
 def test_settings_validation():
     s = Settings(CFG["defaults"], {"theme": "pink", "difficulty": "hard", "animation_speed": 99})
     assert s.get("theme") == "green" and s.get("difficulty") == "hard" and s.get("animation_speed") == 1.0
