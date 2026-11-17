@@ -207,9 +207,14 @@ def play_firewall(ctx: MissionContext, params: dict[str, Any]) -> None:
                           + (". Rules MAY REPEAT in this chain." if p.repeats else ". Each rule used once."),
                           "warn" if p.repeats else "dim")]
     ctx.ui.box("FIREWALL", [f"{i + 1}. {r}" for i, r in enumerate(p.pool)] + [""] + notes)
+    crack_chain(ctx, p, "Firewall")
+
+
+def crack_chain(ctx: MissionContext, p: firewall.FirewallPuzzle, name: str) -> None:
+    """Guess loop shared by firewall stages and locked network nodes. Raises MissionFailed."""
     while not p.solved:
         if p.remaining <= 0:
-            raise MissionFailed("Firewall locked out: no attempts left.")
+            raise MissionFailed(f"{name} locked out: no attempts left.")
         ctx.hud()
         raw = ctx.ask(f"chain ({p.remaining} left)", p.next_solver_guess)
         parsed = p.parse(raw)
@@ -222,7 +227,7 @@ def play_firewall(ctx: MissionContext, params: dict[str, Any]) -> None:
             used = len(p.history)
             verdict = ("You beat the solver!" if used < p.par
                        else "Matched the solver." if used == p.par else "The solver did it faster.")
-            ctx.ui.ok(f"Firewall chain accepted in {used} probe(s). Solver par: {p.par}. {verdict}")
+            ctx.ui.ok(f"{name} chain accepted in {used} probe(s). Solver par: {p.par}. {verdict}")
         else:
             ctx.ui.say(f"  exact {exact}  partial {partial}", "accent")
             ctx.wrong()
@@ -295,10 +300,20 @@ def play_password(ctx: MissionContext, params: dict[str, Any]) -> None:
 
 
 def play_network(ctx: MissionContext, params: dict[str, Any]) -> None:
-    """Interactive network-mapping stage."""
-    m = network.generate(ctx.rng.fork("network"), params.get("target", "DATABASE"), params.get("hidden", 1))
+    """Interactive network-mapping stage.
+
+    Tough mode (Normal and Hard by default): every scan adds detection (deep scans for
+    hidden nodes cost double), and the safest route runs through a locked node whose
+    access chain must be cracked first. At least one route is always unlocked.
+    """
+    tough = bool(params.get("tough", ctx.difficulty != "easy"))
+    m = network.generate(ctx.rng.fork("network"), params.get("target", "DATABASE"), params.get("hidden", 1),
+                         params.get("locks", 1 if tough else 0))
+    scan_cost = ctx.cfg["detection"]["network_scan"] if tough else 0
     ctx.objective = f"Map the network and route to {m.target}"
-    ctx.help_text = "'scan' reveals the next layer (costs ticks). 'routes' lists paths. 'route N' commits. 'map' draws the map."
+    ctx.help_text = ("'scan' reveals the next layer (costs ticks" + (" and detection" if tough else "")
+                     + "). 'routes' lists paths. 'route N' commits; locked nodes must be cracked first. "
+                     "'map' draws the map.")
     plan = iter(m.solver_commands())
     while True:
         ctx.hud()
@@ -306,13 +321,18 @@ def play_network(ctx: MissionContext, params: dict[str, Any]) -> None:
         if cmd == "scan":
             found = m.scan()
             ctx.spend("scan")
+            if scan_cost:
+                ctx.meter.add(scan_cost * (2 if set(found) & m.hidden else 1))
+                ctx.check()
             ctx.ui.say("  found: " + (", ".join(found) if found else "nothing new"), "accent")
         elif cmd == "map":
             screens.network_map(ctx.ui, m)
         elif cmd == "routes":
-            rows = [(i + 1, " > ".join(r.nodes), r.risk, r.rating) for i, r in enumerate(m.routes())]
+            rows = [(i + 1, r.risk, r.rating, network.route_label(r)) for i, r in enumerate(m.routes())]
             if rows:
-                ctx.ui.table(["#", "ROUTE", "RISK", "RATING"], rows)
+                ctx.ui.table(["#", "RISK", "RATING", "ROUTE"], rows)
+                if any(r.locked for r in m.routes()):
+                    ctx.ui.say("  * locked node: crack its access chain to pass", "warn")
             else:
                 ctx.ui.warn(f"{m.target} not found yet. Keep scanning.")
         elif cmd.startswith("route "):
@@ -322,13 +342,28 @@ def play_network(ctx: MissionContext, params: dict[str, Any]) -> None:
             except (ValueError, IndexError):
                 ctx.ui.warn("Pick a route number from 'routes'.")
                 continue
+            for node in r.locked:
+                unlock_node(ctx, node)
             ctx.meter.add(network.route_detection(r.rating, ctx.rng.fork("route"), ctx.cfg["detection"]))
             ctx.spend()
             ctx.found_hidden = m.found_hidden()
-            ctx.ui.ok(f"Routed via {' > '.join(r.nodes)} ({r.rating} risk).")
+            ctx.ui.ok(f"Routed via {network.route_label(r).replace('*', '')} ({r.rating} risk).")
             return
         else:
             ctx.ui.warn("Commands: scan, map, routes, route N.")
+
+
+def unlock_node(ctx: MissionContext, node: str) -> None:
+    """Crack the short access chain guarding a locked network node."""
+    p = firewall.generate(ctx.rng.fork(f"lock-{node}"), 6, 3, 0, margin=2)
+    ctx.ui.box(f"{node} IS LOCKED", [f"{i + 1}. {r}" for i, r in enumerate(p.pool)] + [
+        "", ctx.ui.paint(f"Crack its 3-rule access chain: {p.attempts} attempts.", "warn")])
+    previous = ctx.puzzle, ctx.stage_kind
+    ctx.puzzle, ctx.stage_kind = p, "firewall"
+    try:
+        crack_chain(ctx, p, node)
+    finally:
+        ctx.puzzle, ctx.stage_kind = previous
 
 
 def play_escape(ctx: MissionContext, params: dict[str, Any]) -> None:

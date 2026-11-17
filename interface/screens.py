@@ -83,7 +83,10 @@ def network_map(ui: UI, netmap: Any) -> None:
     for node in sorted(netmap.discovered, key=lambda n: (n != "INTERNET", n)):
         links = sorted(netmap.neighbors(node) & netmap.discovered)
         mark = ui.paint(g["dot"], "warn" if node in netmap.hidden else "ok")
-        tag = " [hidden]" if node in netmap.hidden else (" [target]" if node == netmap.target else "")
+        tag = (" [hidden]" if node in netmap.hidden else " [target]" if node == netmap.target
+               else " [locked]" if node in getattr(netmap, "locked", set()) else "")
+        if node in netmap.hidden and node in getattr(netmap, "locked", set()):
+            tag = " [hid,lck]"
         lines.append(f"{mark} {node:<9}{tag:<9} {g['arrow']} {', '.join(links) or '-'}")
     unknown = len(netmap.nodes - netmap.discovered)
     lines.append(ui.paint(f"{g['hollow']} {unknown} node(s) not yet discovered", "muted"))

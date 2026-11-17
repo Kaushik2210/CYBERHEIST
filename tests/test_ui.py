@@ -80,6 +80,22 @@ def test_mission_hud_fits_80_columns():
     assert visible_len(line) <= 80 and line.endswith("...") and "CRITICAL" in line
 
 
+def test_network_routes_table_fits_80_columns():
+    from challenges import network
+    from core.rng import GameRNG
+    worst = 0
+    for seed in range(100):
+        for target in ("DATABASE", "BACKUP"):
+            m = network.generate(GameRNG(seed), target, hidden_nodes=2, locks=2)
+            m.discovered = set(m.nodes)
+            io = ScriptedIO()
+            ui = UI(io, Theme(color=True, unicode=True), animations=False)
+            ui.table(["#", "RISK", "RATING", "ROUTE"],
+                     [(i + 1, r.risk, r.rating, network.route_label(r)) for i, r in enumerate(m.routes())])
+            worst = max(worst, max(visible_len(line) for line in io.output))
+    assert worst <= 80, worst
+
+
 def test_settings_validation():
     s = Settings(CFG["defaults"], {"theme": "pink", "difficulty": "hard", "animation_speed": 99})
     assert s.get("theme") == "green" and s.get("difficulty") == "hard" and s.get("animation_speed") == 1.0

@@ -105,6 +105,54 @@ def test_firewall_tightness_follows_difficulty():
         assert ("MAY REPEAT" in out) == repeats
 
 
+def test_network_scans_cost_detection_in_tough_mode_only():
+    from challenges import network
+    for difficulty in ("easy", "normal"):
+        m = network.generate(GameRNG(2).fork("network"), "DATABASE", 1, 0 if difficulty == "easy" else 1)
+        open_route = next(i for i, r in enumerate(_mapped_routes(m), 1) if not r.locked)
+        io = ScriptedIO(["scan"] * 5 + ["routes", f"route {open_route}"])
+        ctx = make_ctx(io, 2, difficulty=difficulty, grace_ticks=300, max_ticks=600)
+        run_stages(ctx, [{"type": "network", "params": {"hidden": 1}}])
+        scans = 0 if difficulty == "easy" else 4 * 3 + 1 * 6   # four layers, then a double-cost deep scan
+        route = network.route_detection(_mapped_routes(m)[open_route - 1].rating,
+                                        GameRNG(2).fork("route"), CFG["detection"])
+        assert ctx.meter.peak == pytest.approx((scans + route) * ctx.diff["detection_mult"])
+        assert "IS LOCKED" not in io.text()   # the open route needs no cracking
+
+
+def _mapped_routes(m):
+    from challenges import network
+    full = network.NetworkMap(dict(m.edges), set(m.hidden), m.target, set(m.nodes), locked=set(m.locked))
+    return full.routes()
+
+
+def test_locked_route_requires_cracking_the_node():
+    from challenges import network
+    seed = 5
+    m = network.generate(GameRNG(seed).fork("network"), "DATABASE", 1, 1)
+    node = sorted(_mapped_routes(m)[0].locked)[0]
+    lock = firewall.generate(GameRNG(seed).fork(f"lock-{node}"), 6, 3, 0, margin=2)
+    answer = " ".join(str(i + 1) for i in lock.secret)
+    io = ScriptedIO(["scan"] * 5 + ["route 1", answer])
+    ctx = make_ctx(io, seed, grace_ticks=300, max_ticks=600)
+    run_stages(ctx, [{"type": "network", "params": {"hidden": 1}}])
+    out = io.text()
+    assert f"{node} IS LOCKED" in out and f"{node} chain accepted in 1 probe" in out and "Routed via" in out
+
+
+def test_failing_a_node_lock_fails_the_mission():
+    from challenges import network
+    seed = 5
+    m = network.generate(GameRNG(seed).fork("network"), "DATABASE", 1, 1)
+    node = sorted(_mapped_routes(m)[0].locked)[0]
+    lock = firewall.generate(GameRNG(seed).fork(f"lock-{node}"), 6, 3, 0, margin=2)
+    wrong = "1 2 3" if lock.secret != (0, 1, 2) else "4 5 6"
+    io = ScriptedIO(["scan"] * 5 + ["route 1"] + [wrong] * 20)
+    ctx = make_ctx(io, seed, grace_ticks=300, max_ticks=600)
+    with pytest.raises(MissionFailed, match=f"{node} locked out"):
+        run_stages(ctx, [{"type": "network", "params": {"hidden": 1}}])
+
+
 def test_neural_accelerator_cuts_tick_costs():
     ctx = make_ctx(ScriptedIO(), neural=True)
     ctx.spend("scan")

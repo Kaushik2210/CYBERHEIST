@@ -29,6 +29,7 @@
     "escape_fail": 10,
     "classified_download": 3,
     "lab_tool": 2,
+    "network_scan": 3,
     "thresholds": {"elevated": 30, "high": 60, "critical": 85, "fail": 100}
   },
   "ticks": {

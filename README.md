@@ -102,7 +102,7 @@ Between stages: ENTER continues, `P` opens the pause menu (resume or abort).
 | Stage | Commands |
 |---|---|
 | Tutorial shell | `help`, `scan`, `connect <host>`, `ls`, `cat <file>`, `status` |
-| Network | `scan`, `map`, `routes`, `route N` |
+| Network | `scan`, `map`, `routes`, `route N` (a locked node on the route asks for its access chain first) |
 | Firewall | rule numbers in order, e.g. `1 4 2 6` (on Hard a rule may repeat: `1 1 4 2`) |
 | Cipher lab | the plaintext; `hint`, `shift N` (Caesar, layered), `apply KEY` (Vigenère), `unhex` (layered) |
 | Password | a full guess matching the pattern; marks are `+` right place, `~` elsewhere, `.` absent |
@@ -181,6 +181,13 @@ pull request.
 [MIT](LICENSE) © 2026 Kaushik
 
 ## Engineering decisions
+
+- **Network trade-offs on Normal and Hard.** Each `scan` adds 3% detection, and a
+  deep scan that turns up a hidden node adds 6%. The safest route always runs through
+  a locked node, and taking it means cracking that node's 3-rule access chain first.
+  At least one route is always unlocked, so you choose: crack the lock (ticks, and
+  detection for every wrong probe) or take a riskier open route (+5% to +20%). Set
+  per stage with `tough` and `locks`.
 
 - **Tight firewall on Normal and Hard.** Each lock is played first by the built-in
   solver, and its guess count is the lock's *par*. Easy gives at least the mission's

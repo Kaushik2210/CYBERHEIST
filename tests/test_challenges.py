@@ -69,6 +69,25 @@ def test_network_routes_are_valid_paths():
             assert r.rating in ("LOW", "MEDIUM", "HIGH")
 
 
+def test_network_locks_guard_the_safest_route_but_never_all_routes():
+    for seed in range(500):
+        rng = GameRNG(seed)
+        m = net.generate(rng, target=rng.choice(["DATABASE", "BACKUP"]), hidden_nodes=rng.randint(0, 2),
+                         locks=rng.randint(1, 3))
+        assert m.locked and not m.locked & {"INTERNET", "FIREWALL", "GATEWAY", m.target}
+        while not m.fully_mapped:
+            m.scan()
+        routes = m.routes()
+        assert routes[0].locked, f"safest route open at seed {seed}"
+        assert any(not r.locked for r in routes), f"every route locked at seed {seed}"
+        assert all(set(r.locked) == set(r.nodes) & m.locked for r in routes)
+
+
+def test_network_without_locks_is_unchanged():
+    m = net.generate(GameRNG(1), hidden_nodes=2)
+    assert m.locked == set()
+
+
 def test_route_detection_costs():
     cfg = load_config()["detection"]
     rng = GameRNG(3)
