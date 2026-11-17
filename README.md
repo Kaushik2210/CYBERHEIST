@@ -170,6 +170,12 @@ option (using small test missions, since the campaign is not installed).
 - Box-drawing characters fall back to ASCII when the terminal encoding can't print
   them, but colour support depends on the terminal.
 
+## Contributing
+
+Contributions are welcome, especially the campaign missions and the data-extraction
+challenge. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, rules and how to open a
+pull request.
+
 ## License
 
 [MIT](LICENSE) © 2026 Kaushik
