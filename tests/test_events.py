@@ -81,7 +81,7 @@ def test_bonus_events():
 
 def test_free_hint_and_banked_intel_are_spent_in_cipher_stage():
     seed = 9
-    p = encryption.generate(GameRNG(seed).fork("cipher-hex"), "hex", 3)
+    p = encryption.generate(GameRNG(seed).fork("cipher-hex"), "hex", 3, tough=True)  # Normal = tough
     ctx, io = make(["use intel", "hint", p.answer], seed=seed, events=False)
     ctx.free_hints, ctx.free_reveals = 1, 1
     run_stages(ctx, [{"type": "cipher", "params": {"kind": "hex"}}])

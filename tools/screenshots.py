@@ -147,7 +147,8 @@ def scene_firewall() -> CaptureIO:
 
 def scene_cipher() -> CaptureIO:
     seed = 5
-    key = encryption.generate(GameRNG(seed).fork("cipher-vigenere"), "vigenere", 3).key
+    p = encryption.generate(GameRNG(seed).fork("cipher-vigenere"), "vigenere", 3, tough=True)
+    key = encryption.key_from_crib(p.ciphertext, p.crib, p.key_len)
     return stage([{"type": "cipher", "label": "Intercepted transmission", "params": {"kind": "vigenere"}}],
                  ["hint", f"apply {key}"], seed=seed)
 

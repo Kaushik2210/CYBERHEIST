@@ -46,7 +46,7 @@ def test_decoder_and_override_on_firewall():
 
 def test_toolkit_hint_costs_no_ticks():
     seed = 6
-    p = encryption.generate(GameRNG(seed).fork("cipher-caesar"), "caesar", 3)
+    p = encryption.generate(GameRNG(seed).fork("cipher-caesar"), "caesar", 3, tough=True)  # Normal = tough
     ctx, inv, io = make(["use toolkit", p.answer], owned=["cipher_toolkit"], seed=seed)
     run_stages(ctx, [{"type": "cipher", "params": {"kind": "caesar"}}])
     assert "Toolkit hint" in io.text() and inv.uses("cipher_toolkit") == 4 and ctx.ticks == 1

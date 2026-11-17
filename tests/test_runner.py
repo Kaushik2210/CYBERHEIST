@@ -71,6 +71,28 @@ def test_overtime_past_grace_adds_detection():
     assert ctx.meter.level == 3
 
 
+def test_lab_tools_cost_detection_in_tough_mode_only():
+    from challenges import encryption
+    seed = 4
+    for difficulty, expected in (("normal", 2.0), ("easy", 0.0)):
+        tough = difficulty != "easy"
+        p = encryption.generate(GameRNG(seed).fork("cipher-caesar"), "caesar", 3, tough=tough)
+        io = ScriptedIO([f"shift {p.shift}", p.answer])
+        ctx = make_ctx(io, seed, difficulty=difficulty)
+        run_stages(ctx, [{"type": "cipher", "params": {"kind": "caesar"}}])
+        assert ctx.meter.peak == expected * ctx.diff["detection_mult"]
+
+
+def test_layered_stage_with_unhex_and_shift():
+    from challenges import encryption
+    seed = 6
+    p = encryption.generate(GameRNG(seed).fork("cipher-layered"), "layered", 3, tough=True)
+    io = ScriptedIO(["unhex", f"shift {p.shift}", p.answer])
+    ctx = make_ctx(io, seed)
+    run_stages(ctx, [{"type": "cipher", "params": {"kind": "layered"}}])
+    assert "Hex layer removed" in io.text() and ctx.meter.peak == 4
+
+
 def test_neural_accelerator_cuts_tick_costs():
     ctx = make_ctx(ScriptedIO(), neural=True)
     ctx.spend("scan")

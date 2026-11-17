@@ -104,7 +104,7 @@ Between stages: ENTER continues, `P` opens the pause menu (resume or abort).
 | Tutorial shell | `help`, `scan`, `connect <host>`, `ls`, `cat <file>`, `status` |
 | Network | `scan`, `map`, `routes`, `route N` |
 | Firewall | rule numbers in order, e.g. `1 4 2 6` |
-| Cipher lab | the plaintext; `hint`, `shift N` (Caesar), `apply KEY` (Vigenère) |
+| Cipher lab | the plaintext; `hint`, `shift N` (Caesar, layered), `apply KEY` (Vigenère), `unhex` (layered) |
 | Password | a full guess matching the pattern; marks are `+` right place, `~` elsewhere, `.` absent |
 | Escape | an option number, or the displayed code |
 
@@ -121,7 +121,7 @@ Black market: `buy N`, `equip N`, `unequip N`, `b`. Up to 2 passives equipped.
 | §4 profile, 8 ranks, rewards, Ghost/Speed bonuses | `core/player.py`, `core/progression.py` | Done |
 | §5A network mapping | `challenges/network.py` | Done |
 | §5B firewall | `challenges/firewall.py` | Done |
-| §5C encryption lab (6 types) | `challenges/encryption.py` | Done |
+| §5C encryption lab (6 types, plus a layered hex-over-Caesar cipher) | `challenges/encryption.py` | Done |
 | §5D password | `challenges/password.py` | Done |
 | §5E detection monitor | `challenges/detection.py` | Done |
 | §5F data extraction | `challenges/extraction.py` | **Not written** |
@@ -144,7 +144,7 @@ objectives, `stages`, tick numbers and rewards. A stage looks like:
 ```
 
 Stage types: `shell`, `network`, `firewall`, `cipher` (`kind`: caesar, vigenere,
-substitution, binary, hex, pattern), `password`, `escape`. Any stage can add
+substitution, binary, hex, pattern, layered; optional `tough`), `password`, `escape`. Any stage can add
 `"patrol": N` to raise detection by N per tick while it runs. Optional objectives use
 `kind` `max_ticks`, `max_detection`, `hidden_node` or `no_wrong`.
 
@@ -181,6 +181,13 @@ pull request.
 [MIT](LICENSE) © 2026 Kaushik
 
 ## Engineering decisions
+
+- **Tough cipher lab on Normal and Hard.** The Vigenère keyword is hidden: you get
+  the first word of the message and the key length, and work the key out yourself.
+  Caesar loses its "the shift is N" hint, hex and binary carry longer words with no
+  first-letter hint, pattern locks add alternating and cube sequences, and every
+  `shift`, `apply` or `unhex` adds 2% detection. Easy keeps the gentler lab. A stage can
+  force either mode with `"tough": true/false`.
 
 - **Stage cooldown.** Clearing a stage lowers detection by 12 (`stage_cooldown`).
   Without it, back-to-back puzzles at +8 per wrong guess push late missions to 100%

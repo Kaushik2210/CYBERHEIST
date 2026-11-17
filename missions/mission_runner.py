@@ -48,6 +48,7 @@ class MissionContext:
         self.puzzle: Any = None
         self.stage_kind = ""
         self.ui, self.rng, self.cfg = ui, rng, cfg
+        self.difficulty = difficulty
         self.diff = cfg["difficulty"][difficulty]
         self.meter = DetectionMeter(cfg["detection"], self.diff["detection_mult"], ghost_proxy, signal_mask)
         self.tick_cfg = cfg["ticks"]
@@ -215,12 +216,15 @@ def play_firewall(ctx: MissionContext, params: dict[str, Any]) -> None:
 
 
 def play_cipher(ctx: MissionContext, params: dict[str, Any]) -> None:
-    """Interactive encryption-lab stage."""
+    """Interactive encryption-lab stage. Tough mode (Normal and Hard by default) hides more
+    and makes every lab-tool use raise detection."""
+    tough = bool(params.get("tough", ctx.difficulty != "easy"))
     p = encryption.generate(ctx.rng.fork(f"cipher-{params['kind']}"), params["kind"],
-                            params.get("attempts", 3) + max(0, ctx.diff["attempt_bonus"]))
+                            params.get("attempts", 3) + max(0, ctx.diff["attempt_bonus"]), tough=tough)
     ctx.puzzle, ctx.stage_kind = p, "cipher"
     ctx.objective = f"Decode the {p.kind} intercept"
-    ctx.help_text = "Type the plaintext. 'hint' costs ticks; 'shift N' / 'apply KEY' are lab tools."
+    ctx.help_text = ("Type the plaintext. 'hint' costs ticks; 'shift N', 'apply KEY' and 'unhex' are lab tools"
+                     + (" (each use is logged: +detection)." if tough else "."))
     ctx.ui.box(f"CIPHER LAB: {p.kind.upper()}", [p.brief, "", p.ciphertext])
     while not p.solved:
         if p.remaining <= 0:
@@ -236,8 +240,11 @@ def play_cipher(ctx: MissionContext, params: dict[str, Any]) -> None:
                 ctx.ui.ok("Free hint from the exposed vulnerability.")
             elif hint:
                 ctx.spend("hint")
-        elif low.startswith(("shift ", "apply ")):
-            ctx.ui.say(p.tool(raw.split(None, 1)[1]), "accent")
+        elif low == "unhex" or low.startswith(("shift ", "apply ")):
+            verb, _, arg = raw.partition(" ")
+            ctx.ui.say(p.tool(arg.strip(), verb.lower()), "accent")
+            if tough:
+                ctx.meter.add(ctx.cfg["detection"]["lab_tool"])
             ctx.spend("tool")
         elif p.check(raw):
             ctx.spend()

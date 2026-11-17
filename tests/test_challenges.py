@@ -183,6 +183,44 @@ def test_cipher_solvable_500_seeds(kind):
         assert p.check(p.solver_answer()), f"{kind} unsolvable at seed {seed}"
 
 
+@pytest.mark.parametrize("kind", enc.KINDS)
+def test_tough_cipher_solvable_500_seeds(kind):
+    for seed in range(500):
+        p = enc.generate(GameRNG(seed), kind, tough=True)
+        assert p.check(p.solver_answer()), f"tough {kind} unsolvable at seed {seed}"
+
+
+def test_tough_vigenere_hides_key_but_crib_recovers_it():
+    for seed in range(200):
+        p = enc.generate(GameRNG(seed), "vigenere", tough=True)
+        assert p.key not in p.brief and p.crib in p.brief and f"Key length: {p.key_len}" in p.brief
+        assert p.key_len <= len(p.crib)
+        assert enc.key_from_crib(p.ciphertext, p.crib, p.key_len) == p.key
+
+
+def test_tough_mode_drops_giveaway_hints():
+    for seed in range(100):
+        c = enc.generate(GameRNG(seed), "caesar", tough=True)
+        assert not any(h == f"The shift is {c.shift}." for h in c.hints)
+        assert len(enc.caesar_candidates(c.ciphertext)) == 1
+        h = enc.generate(GameRNG(seed), "hex", tough=True)
+        assert not any("starts with" in x for x in h.hints) and len(h.answer) > 4
+
+
+def test_layered_cipher_tools():
+    p = enc.generate(GameRNG(12), "layered", tough=True)
+    layer = p.tool("", "unhex").split(": ", 1)[1]
+    assert layer == enc.from_hex(p.ciphertext)
+    assert p.tool(str(p.shift), "shift").endswith(p.answer)
+    assert "No lab tool" in p.tool("NOVA", "apply")
+
+
+def test_pattern_solver_handles_tough_rules():
+    assert enc._next_term("2, 5, 10, 13, 26") == 29        # +3, x2 alternating
+    assert enc._next_term("1, 8, 27, 64, 125") == 216      # cubes
+    assert enc._next_term("4, 9, 16, 25, 36") == 49        # squares
+
+
 def test_substitution_answer_is_unique_among_candidates():
     for seed in range(200):
         p = enc.generate(GameRNG(seed), "substitution")

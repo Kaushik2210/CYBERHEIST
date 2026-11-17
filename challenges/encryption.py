@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from core.rng import GameRNG
 
 A = string.ascii_uppercase
-KINDS = ("caesar", "vigenere", "substitution", "binary", "hex", "pattern")
+KINDS = ("caesar", "vigenere", "substitution", "binary", "hex", "pattern", "layered")
 
 PHRASES = [
     "NEON GHOST", "SILENT ORCHID", "PHANTOM RELAY", "BLACK MIRROR", "CHROME SPARROW",
@@ -75,6 +75,26 @@ def letter_pattern(text: str) -> tuple:
     return tuple(seen.setdefault(c, len(seen)) if c in A else -1 for c in text)
 
 
+# The game's "language": a text reads as plaintext when every word is one of these.
+VOCAB = {w for p in PHRASES for w in p.split()}
+
+
+def caesar_candidates(text: str) -> list[tuple[int, str]]:
+    """Every shift that turns ``text`` into words from the game vocabulary."""
+    out = []
+    for s in range(1, 26):
+        plain = caesar(text, -s)
+        if all(w in VOCAB for w in plain.split()):
+            out.append((s, plain))
+    return out
+
+
+def key_from_crib(ciphertext: str, crib: str, key_len: int) -> str:
+    """Recover a Vigenère key from known plaintext at the start of the message."""
+    letters = [c for c in ciphertext if c in A]
+    return "".join(A[(A.index(letters[i]) - A.index(crib[i])) % 26] for i in range(key_len))
+
+
 # -- puzzle ------------------------------------------------------------------------
 @dataclass
 class CipherPuzzle:
@@ -89,6 +109,9 @@ class CipherPuzzle:
     candidates: list[str] = field(default_factory=list)
     key: str = ""
     shift: int = 0
+    crib: str = ""
+    key_len: int = 0
+    tough: bool = False
     hints_used: int = 0
     wrong: int = 0
     solved: bool = False
@@ -118,30 +141,37 @@ class CipherPuzzle:
         n = min(len(self.answer), 3 + self.hints_used)
         return f"Plaintext begins: {self.answer[:n]}..."
 
-    def tool(self, arg: str) -> str:
-        """Lab helper: 'shift N' trial for Caesar, 'apply KEY' for Vigenère."""
-        if self.kind == "caesar":
+    def tool(self, arg: str, verb: str | None = None) -> str:
+        """Lab helpers: 'shift N' (Caesar, layered), 'apply KEY' (Vigenère), 'unhex' (layered)."""
+        verb = verb or {"caesar": "shift", "vigenere": "apply"}.get(self.kind, "")
+        if self.kind == "layered" and verb == "unhex":
+            return f"Hex layer removed: {from_hex(self.ciphertext)}"
+        if self.kind in ("caesar", "layered") and verb == "shift":
             try:
                 n = int(arg)
             except ValueError:
                 return "Usage: shift <number 1-25>"
-            return f"Shift -{n}: {caesar(self.ciphertext, -n)}"
-        if self.kind == "vigenere":
+            base = self.ciphertext if self.kind == "caesar" else from_hex(self.ciphertext)
+            return f"Shift -{n}: {caesar(base, -n)}"
+        if self.kind == "vigenere" and verb == "apply":
             if not arg.isalpha():
                 return "Usage: apply <keyword>"
             return f"Key {arg.upper()}: {vigenere(self.ciphertext, arg, decrypt=True)}"
-        return "No lab tool for this cipher. Try 'hint'."
+        return "No lab tool for that here. Try 'hint'."
 
     def add_attempt(self) -> None:
         """Emergency Override: one extra attempt."""
         self.attempts += 1
 
     def solver_answer(self) -> str:
-        """What the autopilot types: derived from the puzzle data, not read from the answer field."""
+        """What the autopilot types, worked out only from what the player is shown."""
         if self.kind == "caesar":
-            return caesar(self.ciphertext, -self.shift)
+            return caesar_candidates(self.ciphertext)[0][1]
+        if self.kind == "layered":
+            return caesar_candidates(from_hex(self.ciphertext))[0][1]
         if self.kind == "vigenere":
-            return vigenere(self.ciphertext, self.key, decrypt=True)
+            key = self.key if not self.tough else key_from_crib(self.ciphertext, self.crib, self.key_len)
+            return vigenere(self.ciphertext, key, decrypt=True)
         if self.kind == "substitution":
             shape = letter_pattern(self.ciphertext)
             return next(c for c in self.candidates if letter_pattern(c) == shape)
@@ -162,27 +192,57 @@ def _next_term(seq_text: str) -> int:
         return xs[-1] * (xs[1] // xs[0])
     if all(xs[i] == xs[i - 1] + xs[i - 2] for i in range(2, len(xs))):
         return xs[-1] + xs[-2]
-    dd = [b - a for a, b in zip(d, d[1:])]
-    return xs[-1] + d[-1] + dd[0]
+    step = xs[1] - xs[0]
+    if xs[1] and xs[2] % xs[1] == 0:
+        m = xs[2] // xs[1]
+        if all(xs[i] == (xs[i - 1] + step if i % 2 == 1 else xs[i - 1] * m) for i in range(1, len(xs))):
+            return xs[-1] + step if len(xs) % 2 == 1 else xs[-1] * m
+    # Polynomial (squares, cubes): extend the difference table until a row is constant.
+    rows = [xs]
+    while len(set(rows[-1])) > 1 and len(rows[-1]) > 1:
+        rows.append([b - a for a, b in zip(rows[-1], rows[-1][1:])])
+    return sum(r[-1] for r in rows)
 
 
-def generate(rng: GameRNG, kind: str, attempts: int = 3) -> CipherPuzzle:
+def generate(rng: GameRNG, kind: str, attempts: int = 3, tough: bool = False) -> CipherPuzzle:
     """Create a puzzle of ``kind``. Every puzzle is checked solvable before it is returned."""
     if kind not in KINDS:
         raise ValueError(f"unknown cipher kind {kind}")
     phrase = rng.choice(PHRASES)
-    if kind == "caesar":
-        s = rng.randint(1, 25)
-        p = CipherPuzzle(kind, caesar(phrase, s), phrase, "Caesar shift. Try 'shift <n>' in the lab.",
-                         [f"The shift is {'even' if s % 2 == 0 else 'odd'}.",
-                          f"The shift is between {max(1, s - 3)} and {min(25, s + 3)}.",
-                          f"The shift is {s}."], attempts, shift=s)
+    if kind in ("caesar", "layered"):
+        while True:
+            s = rng.randint(1, 25)
+            if len(caesar_candidates(caesar(phrase, s))) == 1:
+                break
+            phrase = rng.choice(PHRASES)
+        hints = [f"The shift is {'even' if s % 2 == 0 else 'odd'}.",
+                 f"The shift is between {max(1, s - 3)} and {min(25, s + 3)}."]
+        if not tough:
+            hints.append(f"The shift is {s}.")
+        if kind == "caesar":
+            brief = "Caesar shift. Try 'shift <n>' in the lab." + (" Each trial is logged." if tough else "")
+            p = CipherPuzzle(kind, caesar(phrase, s), phrase, brief, hints, attempts, shift=s, tough=tough)
+        else:
+            p = CipherPuzzle(kind, to_hex(caesar(phrase, s)), phrase,
+                             "Two layers: hex-encoded ASCII over a Caesar shift. 'unhex' peels the outer "
+                             "layer, then 'shift <n>' works on what's underneath.",
+                             ["The outer layer is hex: 41 = 'A', 20 = space."] + hints, attempts,
+                             shift=s, tough=tough)
     elif kind == "vigenere":
-        key = rng.choice(KEYWORDS)
-        p = CipherPuzzle(kind, vigenere(phrase, key), phrase,
-                         f"Vigenère cipher. Intercepted keyword: {key}. Try 'apply <key>'.",
-                         ["Subtract the key letter (A=0) from each cipher letter.",
-                          f"First word decodes to {phrase.split()[0][:2]}..."], attempts, key=key)
+        first = phrase.split()[0]
+        key = rng.choice([k for k in KEYWORDS if len(k) <= len(first)] if tough else KEYWORDS)
+        if tough:
+            p = CipherPuzzle(kind, vigenere(phrase, key), phrase,
+                             f"Vigenère cipher, key unknown. The message starts with {first}. "
+                             f"Key length: {len(key)}. Work out the key, then 'apply <key>'.",
+                             ["Key letter = cipher letter - known plain letter (A=0, wrap at 26).",
+                              f"The key starts with {key[0]}."], attempts,
+                             key=key, crib=first, key_len=len(key), tough=True)
+        else:
+            p = CipherPuzzle(kind, vigenere(phrase, key), phrase,
+                             f"Vigenère cipher. Intercepted keyword: {key}. Try 'apply <key>'.",
+                             ["Subtract the key letter (A=0) from each cipher letter.",
+                              f"First word decodes to {first[:2]}..."], attempts, key=key)
     elif kind == "substitution":
         letters = list(A)
         rng.shuffle(letters)
@@ -199,13 +259,15 @@ def generate(rng: GameRNG, kind: str, attempts: int = 3) -> CipherPuzzle:
                          ], attempts, candidates=cands)
         p.brief += " " + " | ".join(cands)
     elif kind in ("binary", "hex"):
-        word = rng.choice(WORDS)
+        word = rng.choice(PHRASES).split()[0] + rng.choice(WORDS) if tough else rng.choice(WORDS)
         enc = to_binary(word) if kind == "binary" else to_hex(word)
-        p = CipherPuzzle(kind, enc, word, f"{kind.title()}-encoded ASCII word.",
-                         ["'A' is 01000001 in binary, 41 in hex." if kind == "binary" else "'A' is 41 in hex, 'Z' is 5A.",
-                          f"The word starts with {word[0]}."], attempts)
+        hints = ["'A' is 01000001 in binary, 41 in hex." if kind == "binary" else "'A' is 41 in hex, 'Z' is 5A."]
+        if not tough:
+            hints.append(f"The word starts with {word[0]}.")
+        p = CipherPuzzle(kind, enc, word, f"{kind.title()}-encoded ASCII word.", hints, attempts, tough=tough)
     else:
-        rule = rng.choice(["arith", "geom", "fib", "square"])
+        rules = ["arith", "geom", "fib", "square"] + (["alt", "cube"] if tough else [])
+        rule = rng.choice(rules)
         a = rng.randint(1, 9)
         if rule == "arith":
             d = rng.randint(2, 12)
@@ -217,13 +279,22 @@ def generate(rng: GameRNG, kind: str, attempts: int = 3) -> CipherPuzzle:
             xs = [a, a + rng.randint(1, 5)]
             while len(xs) < 6:
                 xs.append(xs[-1] + xs[-2])
+        elif rule == "alt":
+            d, m = rng.randint(2, 9), rng.randint(2, 3)
+            xs = [a]
+            while len(xs) < 6:
+                xs.append(xs[-1] + d if len(xs) % 2 == 1 else xs[-1] * m)
+        elif rule == "cube":
+            xs = [(a + i) ** 3 for i in range(6)]
         else:
             xs = [(a + i) ** 2 for i in range(6)]
         seq = ", ".join(str(x) for x in xs[:5])
+        names = {"arith": "add a constant", "geom": "multiply by a constant", "fib": "add the two previous terms",
+                 "square": "consecutive squares", "alt": "alternate adding and multiplying",
+                 "cube": "consecutive cubes"}
+        hints = ["Look at the differences between terms."] + ([] if tough else [f"The rule is {names[rule]}."])
         p = CipherPuzzle(kind, seq, str(xs[5]), "Pattern lock: enter the next number in the sequence.",
-                         ["Look at the differences between terms.",
-                          f"The rule is {'add a constant' if rule == 'arith' else 'multiply by a constant' if rule == 'geom' else 'add the two previous terms' if rule == 'fib' else 'consecutive squares'}."],
-                         attempts)
+                         hints, attempts, tough=tough)
     if normalize(p.solver_answer()) != normalize(p.answer):
         raise AssertionError(f"generated unsolvable {kind} puzzle")
     return p
