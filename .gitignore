@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Game saves and backups
+*.db
+*.db-journal
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

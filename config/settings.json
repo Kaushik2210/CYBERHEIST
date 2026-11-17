@@ -1,0 +1,82 @@
+{
+  "config_version": 1,
+  "defaults": {
+    "difficulty": "normal",
+    "theme": "green",
+    "animations": true,
+    "animation_speed": 1.0,
+    "typewriter": true,
+    "sound": false
+  },
+  "difficulty": {
+    "easy":   {"attempt_bonus": 3,  "code_length_delta": -1, "grace_bonus": 15, "detection_mult": 0.75, "reward_mult": 0.8},
+    "normal": {"attempt_bonus": 0,  "code_length_delta": 0,  "grace_bonus": 0,  "detection_mult": 1.0,  "reward_mult": 1.0},
+    "hard":   {"attempt_bonus": -2, "code_length_delta": 1,  "grace_bonus": -10, "detection_mult": 1.25, "reward_mult": 1.35}
+  },
+  "detection": {
+    "wrong_guess": 8,
+    "overtime_per_tick": 1,
+    "alarm": 15,
+    "risky_route_min": 10,
+    "risky_route_max": 20,
+    "medium_route": 5,
+    "ghost_proxy_mult": 0.7,
+    "stage_cooldown": 12,
+    "event_ceiling": 80,
+    "escape_fail": 10,
+    "classified_download": 3,
+    "thresholds": {"elevated": 30, "high": 60, "critical": 85, "fail": 100}
+  },
+  "ticks": {
+    "command": 1,
+    "wrong_guess": 3,
+    "scan": 2,
+    "hint": 2,
+    "tool": 1,
+    "escape_round": 2,
+    "neural_mult": 0.8
+  },
+  "progression": {
+    "xp_thresholds": [0, 300, 800, 1600, 2800, 4500, 7000, 10000],
+    "level_titles": ["Script Kiddie", "Packet Sniffer", "Ghost Operator", "Exploit Specialist",
+                     "Shadow Hacker", "Cyber Phantom", "Digital Architect", "Zero Day Legend"],
+    "reputation_success": 10,
+    "reputation_fail": -5,
+    "reputation_optional": 3,
+    "ghost_bonus_xp": 150,
+    "ghost_bonus_credits": 500,
+    "speed_bonus_xp": 100,
+    "speed_bonus_credits": 300,
+    "replay_reward_mult": 0.4,
+    "starting_credits": 1000
+  },
+  "items": {
+    "ghost_proxy":        {"name": "Ghost Proxy",        "price": 2000, "kind": "passive",    "uses": 1, "desc": "Detection gain x0.7."},
+    "cipher_toolkit":     {"name": "Cipher Toolkit",     "price": 800,  "kind": "consumable", "uses": 5, "desc": "Extra encryption hint (no tick cost)."},
+    "neural_accelerator": {"name": "Neural Accelerator", "price": 2500, "kind": "passive",    "uses": 1, "desc": "Tick costs x0.8."},
+    "signal_mask":        {"name": "Signal Mask",        "price": 1800, "kind": "passive",    "uses": 1, "desc": "Absorbs one alarm per mission."},
+    "quantum_decoder":    {"name": "Quantum Decoder",    "price": 1200, "kind": "consumable", "uses": 3, "desc": "Reveals one extra puzzle detail."},
+    "data_scanner":       {"name": "Data Scanner",       "price": 1000, "kind": "consumable", "uses": 3, "desc": "Reveals hidden files."},
+    "emergency_override": {"name": "Emergency Override", "price": 1500, "kind": "consumable", "uses": 1, "desc": "One extra attempt."}
+  },
+  "max_equipped": 2,
+  "events": {
+    "block_ticks": 10,
+    "probabilities": {
+      "firewall_update": 0.06,
+      "security_patrol": 0.08,
+      "encrypted_backup": 0.05,
+      "suspicious_traffic": 0.08,
+      "hidden_intel": 0.05,
+      "exposed_vulnerability": 0.05,
+      "anonymous_message": 0.06
+    },
+    "firewall_update_ticks": 3,
+    "backup_credits": 250
+  },
+  "ui": {
+    "min_width": 80,
+    "min_height": 24,
+    "boot_seconds": 3.0
+  }
+}
