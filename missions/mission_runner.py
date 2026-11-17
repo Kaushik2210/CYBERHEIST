@@ -376,15 +376,27 @@ def unlock_node(ctx: MissionContext, node: str) -> None:
 
 
 def play_escape(ctx: MissionContext, params: dict[str, Any]) -> None:
-    """Interactive escape stage."""
+    """Interactive escape stage.
+
+    Tough mode (Normal and Hard by default) uses memory, sequence and clue rounds:
+    a code or lane sequence is shown, the screen clears, and you type it from memory.
+    Hard makes the codes and sequences longer.
+    """
+    tough = bool(params.get("tough", ctx.difficulty != "easy"))
     seq = escape.generate(ctx.rng.fork("escape"), params.get("rounds", 3),
-                          params.get("slack", 4) + max(0, ctx.diff["attempt_bonus"]))
+                          params.get("slack", 4) + max(0, ctx.diff["attempt_bonus"]),
+                          tough=tough, hard=ctx.difficulty == "hard")
     ctx.objective = "Get out before the countdown ends"
-    ctx.help_text = "Answer each round: an option number, or the code exactly."
+    ctx.help_text = ("Answer each round: an option number or lane name, a code, or a lane sequence "
+                     "(names or initials). Memorised items vanish once you press ENTER.")
     while not seq.escaped:
         if seq.out_of_time:
             raise MissionFailed("Countdown expired before you got out.")
         rnd = seq.current
+        if rnd.memorize:
+            ctx.ui.box("MEMORISE", [ctx.ui.paint(rnd.memorize, "accent")], role="warn")
+            ctx.ui.wait("Press ENTER when you have it (the screen will clear)")
+            ctx.ui.clear_screen()
         ctx.ui.say(f"[{seq.ticks_left} ticks] {rnd.prompt}", "warn")
         for i, opt in enumerate(rnd.options, 1):
             ctx.ui.say(f"  {i}. {opt}")

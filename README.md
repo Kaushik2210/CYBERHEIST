@@ -31,7 +31,7 @@ Captured from real game runs with `python tools/screenshots.py`.
 | ![Cipher lab](docs/screenshots/04-cipher-lab.svg) | ![Password recovery](docs/screenshots/06-password.svg) |
 | **Cipher lab:** hints and the `apply KEY` tool | **Password:** pattern clues and per-position marks |
 | ![Network mapping](docs/screenshots/05-network-map.svg) | ![Escape sequence](docs/screenshots/07-escape.svg) |
-| **Network:** scan layer by layer, then pick a route | **Escape:** beat the tick countdown |
+| **Network:** scan layer by layer, then pick a route | **Escape:** memorise, the screen clears, answer before the countdown ends |
 | ![Black market](docs/screenshots/08-black-market.svg) | ![Hacker profile](docs/screenshots/09-profile.svg) |
 | **Black market** | **Profile and statistics** |
 
@@ -106,7 +106,7 @@ Between stages: ENTER continues, `P` opens the pause menu (resume or abort).
 | Firewall | rule numbers in order, e.g. `1 4 2 6` (on Hard a rule may repeat: `1 1 4 2`) |
 | Cipher lab | the plaintext; `hint`, `shift N` (Caesar, layered), `apply KEY` (Vigenère), `unhex` (layered) |
 | Password | a full guess matching the pattern; marks are `+` right place, `~` elsewhere, `.` absent |
-| Escape | an option number, or the displayed code |
+| Escape | an option number or lane name, a code, or a lane sequence from memory (names or initials: `B R G`) |
 
 Black market: `buy N`, `equip N`, `unequip N`, `b`. Up to 2 passives equipped.
 
@@ -181,6 +181,13 @@ pull request.
 [MIT](LICENSE) © 2026 Kaushik
 
 ## Engineering decisions
+
+- **Memory-based escape on Normal and Hard.** Rounds no longer show you the answer:
+  a code (5 characters, 6 on Hard) or a lane sequence (3 lanes, 4 on Hard) appears,
+  the screen clears when you press ENTER, and you type it from memory. Clue rounds
+  ask for "the only warm-coloured lane" or "the lane that comes last alphabetically",
+  and each clue fits exactly one lane. A missed round shows the item again but costs
+  ticks and detection. Easy keeps the original rounds.
 
 - **Tougher passwords on Normal and Hard.** Normal widens each digit range to 6 values,
   adds a "the digits add up to N" clue, and gives the solver's guess count plus 2

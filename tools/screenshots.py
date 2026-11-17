@@ -61,6 +61,9 @@ class CaptureIO:
     def bell(self) -> None:
         pass
 
+    def clear(self) -> None:
+        self.buf += "\033[90m   ... screen cleared ...\033[0m\n"
+
     def lines(self) -> list[str]:
         return self.buf.rstrip("\n").split("\n")
 
@@ -163,7 +166,7 @@ def scene_password() -> CaptureIO:
 
 
 def scene_escape() -> CaptureIO:
-    return stage([{"type": "escape", "label": "Exfiltration", "params": {"rounds": 4}}], seed=4)
+    return stage([{"type": "escape", "label": "Exfiltration", "params": {"rounds": 4}}], seed=9)
 
 
 def scene_market() -> CaptureIO:

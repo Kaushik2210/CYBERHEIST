@@ -46,6 +46,14 @@ class ConsoleIO:
         sys.stdout.write("\a")
         sys.stdout.flush()
 
+    def clear(self) -> None:
+        """Clear the screen (ANSI on a real terminal, blank lines when piped)."""
+        if sys.stdout.isatty():
+            sys.stdout.write("\033[2J\033[H")
+        else:
+            sys.stdout.write("\n" * 40)
+        sys.stdout.flush()
+
 
 class ScriptedIO:
     """Test IO: feeds scripted inputs and records output.
@@ -84,6 +92,10 @@ class ScriptedIO:
     def bell(self) -> None:
         """Count bells instead of ringing."""
         self.bells += 1
+
+    def clear(self) -> None:
+        """Record that the screen was cleared."""
+        self.output.append("<screen cleared>")
 
     def text(self) -> str:
         """All recorded output as one string."""
@@ -133,6 +145,15 @@ class UI:
     def info(self, text: str) -> None:
         """Info line."""
         self.say(f"[i] {text}", "info")
+
+    def clear_screen(self) -> None:
+        """Wipe the screen, e.g. to hide something the player had to memorise."""
+        clear = getattr(self.io, "clear", None)
+        if callable(clear):
+            clear()
+        else:
+            for _ in range(40):
+                self.io.write("")
 
     def alert(self) -> None:
         """Ring the bell when sound is enabled."""

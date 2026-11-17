@@ -165,6 +165,40 @@ def test_password_toughness_follows_difficulty():
         assert "Solver par:" in out
 
 
+def test_memory_rounds_clear_the_screen_before_asking():
+    from challenges import escape
+    seed = 3
+    seq = escape.generate(GameRNG(seed).fork("escape"), 4, 4, tough=True)
+    inputs = []
+    for r in seq.rounds:
+        if r.memorize:
+            inputs.append("")              # ENTER once memorised
+        inputs.append(r.answer)
+    io = ScriptedIO(inputs)
+    ctx = make_ctx(io, seed)
+    run_stages(ctx, [{"type": "escape", "params": {"rounds": 4}}])
+    out = io.output
+    for r in seq.rounds:
+        if r.memorize:
+            shown = next(i for i, line in enumerate(out) if r.memorize in line)
+            cleared = out.index("<screen cleared>", shown)
+            asked = next(i for i, line in enumerate(out) if i > cleared and r.prompt in line)
+            assert shown < cleared < asked
+    assert "Clean exit." in io.text()
+
+
+def test_escape_toughness_follows_difficulty():
+    for difficulty, kinds in (("easy", {"choice", "code"}), ("normal", {"memory", "sequence", "clue"})):
+        io = ScriptedIO(autopilot=True)
+        ctx = make_ctx(io, 8, difficulty=difficulty)
+        run_stages(ctx, [{"type": "escape", "params": {"rounds": 6}}])
+        from challenges import escape
+        seq = escape.generate(GameRNG(8).fork("escape"), 6, 4 + max(0, ctx.diff["attempt_bonus"]),
+                              tough=difficulty != "easy")
+        assert {r.kind for r in seq.rounds} <= kinds
+        assert ("<screen cleared>" in io.output) == any(r.memorize for r in seq.rounds)
+
+
 def test_neural_accelerator_cuts_tick_costs():
     ctx = make_ctx(ScriptedIO(), neural=True)
     ctx.spend("scan")

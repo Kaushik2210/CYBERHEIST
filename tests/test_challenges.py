@@ -27,6 +27,57 @@ def test_escape_perfect_play_survives_500_seeds():
         assert seq.escaped and not seq.out_of_time, f"escape failed at seed {seed}"
 
 
+def test_tough_escape_rounds_are_fair_500_seeds():
+    for seed in range(500):
+        for hard in (False, True):
+            seq = esc.generate(GameRNG(seed), rounds=5, tough=True, hard=hard)
+            for r in seq.rounds:
+                assert r.kind in ("memory", "sequence", "clue")
+                if r.kind in ("memory", "sequence"):
+                    assert r.memorize and r.answer not in r.prompt     # the prompt never repeats it
+                if r.kind == "memory":
+                    assert len(r.answer) == (6 if hard else 5)
+                if r.kind == "sequence":
+                    lanes = r.answer.split()
+                    assert len(lanes) == (4 if hard else 3)
+                    assert all(a != b for a, b in zip(lanes, lanes[1:]))
+                if r.kind == "clue":
+                    assert r.answer in r.options and len(set(r.options)) == 3
+            while seq.current and not seq.out_of_time:
+                assert seq.answer(seq.solver_answer())
+            assert seq.escaped, f"tough escape failed at seed {seed}"
+
+
+def _clue_fits(clue, lane, lanes):
+    if "only warm" in clue:
+        return lane in esc.WARM and sum(x in esc.WARM for x in lanes) == 1
+    if "only cool" in clue:
+        return lane not in esc.WARM and sum(x not in esc.WARM for x in lanes) == 1
+    if "letters" in clue:
+        return len(lane) == int(clue.split("has ")[1].split()[0])
+    if "first alphabetically" in clue:
+        return lane == min(lanes)
+    if "last alphabetically" in clue:
+        return lane == max(lanes)
+    raise AssertionError(clue)
+
+
+def test_clue_rounds_point_to_exactly_one_lane():
+    for seed in range(500):
+        r = esc._clue_round(GameRNG(seed))
+        fits = [x for x in r.options if _clue_fits(r.prompt, x, r.options)]
+        assert fits == [r.answer], f"ambiguous clue at seed {seed}: {r.prompt} {r.options}"
+
+
+def test_sequence_answers_accept_names_or_initials():
+    r = esc.EscapeRound("sequence", "", [], "BLUE AMBER RED", memorize="x")
+    for ok in ("BLUE AMBER RED", "b a r", "BAR", "blue, amber, red", "B AMBER R"):
+        assert r.is_correct(ok), ok
+    for bad in ("BLUE RED AMBER", "B A", "BLUE AMBER PINK", ""):
+        assert not r.is_correct(bad), bad
+    assert esc.lane_initials("violet white") == "VW" and esc.lane_initials("xyz") is None
+
+
 def test_escape_accepts_number_or_text_and_penalises_misses():
     seq = esc.generate(GameRNG(11), rounds=1, slack=0)
     r = seq.current
