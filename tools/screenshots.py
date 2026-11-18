@@ -222,6 +222,26 @@ def scene_complete() -> CaptureIO:
     return io
 
 
+def scene_daily() -> CaptureIO:
+    import datetime as dt
+    from interface.ui import ScriptedIO
+    from missions.mission_runner import run_mission
+    from systems.daily import build_daily, daily_seed, score_run
+    day = dt.date(2026, 11, 18)
+    m = build_daily(day)
+    quiet = UI(ScriptedIO(autopilot=True), Theme(color=False), animations=False)
+    r = run_mission(quiet, GameRNG(daily_seed(day)), CFG, m, "normal")
+    breakdown = score_run(r, m.par_ticks)
+    io = CaptureIO()
+    ui = make_ui(io)
+    rows = [{"seed": daily_seed(day), "best": breakdown.total, "ticks": r.ticks, "peak": r.peak, "plays": 2},
+            {"seed": 20261117, "best": 712, "ticks": 64, "peak": 31, "plays": 1},
+            {"seed": 20261116, "best": 488, "ticks": 81, "peak": 52, "plays": 3}]
+    screens.daily_score(ui, breakdown, breakdown.total, True)
+    screens.daily_board(ui, rows, daily_seed(day), "normal")
+    return io
+
+
 SCENES = {
     "01-boot": ("Boot sequence", scene_boot, None),
     "02-main-menu": ("Main menu", scene_menu, None),
@@ -233,6 +253,7 @@ SCENES = {
     "08-black-market": ("Black market", scene_market, None),
     "09-profile": ("Hacker profile and statistics", scene_profile, None),
     "10-mission-complete": ("Mission complete", scene_complete, None),
+    "11-daily-challenge": ("Daily challenge score", scene_daily, None),
 }
 
 

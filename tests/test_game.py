@@ -64,7 +64,7 @@ def test_every_main_menu_option(tmp_path):
         "4", "buy 1", "equip 1", "unequip 1", "buy 99", "?", "sell 1", "b",  # MARKET
         "5", "x", "s", "b",                     # PROFILE + manual save
         "6",                                    # ACHIEVEMENTS
-        "7", "1", "2", "7", "b",                # SETTINGS: difficulty, theme, reset, back
+        "7", "1", "2", "7", "8", "b",           # SETTINGS: difficulty, theme, adaptive, reset, back
         "1", "y", "Morpheus",                   # NEW GAME: confirm wipe, re-register, plays mission 1
         "8",                                    # EXIT
     ]
@@ -143,7 +143,7 @@ def test_error_boundary_keeps_game_running(tmp_path, monkeypatch):
 
 
 def test_missing_campaign_is_reported(tmp_path):
-    g, io = run(tmp_path, ["Neo_01", "2", "3", "8"], missions=[])
+    g, io = run(tmp_path, ["Neo_01", "2", "3", "b", "8"], missions=[])
     assert io.text().count("No missions are installed") == 2
 
 

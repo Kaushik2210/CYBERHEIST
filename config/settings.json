@@ -6,7 +6,8 @@
     "animations": true,
     "animation_speed": 1.0,
     "typewriter": true,
-    "sound": false
+    "sound": false,
+    "adaptive": false
   },
   "difficulty": {
     "easy":   {"attempt_bonus": 3,  "code_length_delta": -1, "grace_bonus": 15, "detection_mult": 0.75, "reward_mult": 0.8,

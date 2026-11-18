@@ -1,6 +1,7 @@
 """Top-level game: boot, registration, the main menu and every screen behind it."""
 from __future__ import annotations
 
+import datetime as dt
 import shutil
 import time
 from pathlib import Path
@@ -16,7 +17,9 @@ from interface.menus import Menu
 from interface.theme import Theme
 from interface.ui import UI, ConsoleIO, ScriptedIO
 from missions.mission_runner import Mission, MissionContext, run_mission
+from systems import adaptive
 from systems.achievements import AchievementTracker, notify
+from systems.daily import DAILY_KEY, build_daily, daily_seed, score_run
 from systems.black_market import BlackMarket
 from systems.inventory import Inventory
 from systems.statistics import Statistics
@@ -42,9 +45,11 @@ class Game:
 
     def __init__(self, io: ConsoleIO | ScriptedIO, save_path: Path | str, seed: int | None = None,
                  missions: list[Mission] | None = None, cfg: dict[str, Any] | None = None,
-                 clock: Callable[[], float] = time.monotonic) -> None:
+                 clock: Callable[[], float] = time.monotonic,
+                 today: Callable[[], dt.date] = dt.date.today) -> None:
         """Create the game. Nothing touches disk until :meth:`run` or :meth:`load`."""
         self.io = io
+        self.today = today
         self.cfg = cfg or load_config()
         self.rng = GameRNG(seed)
         self.save = SaveManager(save_path)
@@ -195,17 +200,24 @@ class Game:
         self.ui.ok("Campaign complete. Replay any mission from the MISSION DATABASE.")
 
     def mission_database(self) -> None:
-        """List missions; pick an unlocked one to brief and play."""
-        if not self.missions:
-            self.ui.warn("No missions are installed (missions/mission_data.py is missing).")
-            return
+        """List missions and today's daily challenge; pick one to brief and play."""
         while True:
-            screens.mission_database(self.ui, self.missions, self.progress)
-            raw = self.ui.prompt("mission # (b to go back)")
+            if self.missions:
+                screens.mission_database(self.ui, self.missions, self.progress)
+            else:
+                self.ui.warn("No missions are installed (missions/mission_data.py is missing).")
+            difficulty = self.settings.get("difficulty")
+            screens.daily_board(self.ui, self.save.load_scores(f"{DAILY_KEY}-{difficulty}"),
+                                daily_seed(self.today()), difficulty)
+            raw = self.ui.prompt("mission #, d = daily challenge, b = back")
             if raw.lower() in ("b", "back", ""):
                 return
+            if raw.lower() == "d":
+                self.play_daily()
+                return
             if raw == "?":
-                self.ui.info("Type a mission number to see its briefing and play it.")
+                self.ui.info("Type a mission number to see its briefing and play it, or 'd' for the "
+                             "daily challenge: the same run for everyone today, best score kept.")
                 continue
             m = next((x for x in self.missions if raw.isdigit() and x.mid == int(raw)), None)
             if m is None:
@@ -366,9 +378,66 @@ class Game:
             credits = 0
         self.stats.record_mission(m.mid, r.success, r.ticks, m.par_ticks, r.peak, r.wrong, r.solved,
                                   len(r.items_used), credits)
+        self._adapt()
         self._achievements()
         self.persist()
         self.ui.wait()
+
+    def play_daily(self) -> None:
+        """Play today's daily challenge and keep the best score per day and difficulty."""
+        day = self.today()
+        seed = daily_seed(day)
+        m = build_daily(day)
+        difficulty = self.settings.get("difficulty")
+        screens.briefing(self.ui, m, difficulty)
+        self.ui.info(f"Seed {seed}. Everyone on {difficulty.upper()} gets this exact run today.")
+        if not self.ui.confirm("Begin the daily run?", lambda: "y"):
+            self.ui.info("Daily run postponed.")
+            return
+        self.player.last_seed = seed
+
+        def between(ctx: MissionContext, n: int) -> None:
+            self._stage_break()
+
+        r = run_mission(self.ui, GameRNG(seed), self.cfg, m, difficulty, self.inventory, None, between)
+        if not r.success:
+            screens.game_over(self.ui, m, r.reason)
+        breakdown = score_run(r, m.par_ticks)
+        best, new_best = self.save.record_score(f"{DAILY_KEY}-{difficulty}", seed, breakdown.total,
+                                                r.ticks, r.peak, day.isoformat())
+        screens.daily_score(self.ui, breakdown, best, new_best)
+        pl = self.player
+        pl.play_ticks += r.ticks
+        credits = breakdown.total // 10
+        if r.success:
+            leveled = pl.add_xp(breakdown.total // 20, self.cfg["progression"]["xp_thresholds"])
+            pl.add_credits(credits)
+            self.ui.ok(f"Payout: +{breakdown.total // 20} XP, +{credits:,} cr.")
+            if leveled:
+                self.ui.ok(f"RANK UP: {pl.level} {pl.title(self.cfg['progression']['level_titles'])}")
+        self.stats.bump("daily_runs")
+        self.stats.values["daily_best"] = max(self.stats["daily_best"], breakdown.total)
+        self.stats.record_mission(0, r.success, r.ticks, m.par_ticks, r.peak, r.wrong, r.solved,
+                                  len(r.items_used), credits if r.success else 0)
+        self.ui.alert()
+        self._adapt()
+        self._achievements()
+        self.persist()
+        self.ui.wait()
+
+    def _adapt(self) -> None:
+        """With adaptive difficulty on, step the setting after repeated failures or clean wins."""
+        if not self.settings.get("adaptive"):
+            return
+        current = self.settings.get("difficulty")
+        new = adaptive.suggest(current, self.stats)
+        if new is None:
+            return
+        self.settings.set("difficulty", new)
+        self.stats.values["fail_streak"] = 0
+        self.stats.values["clean_streak"] = 0
+        direction = "down" if adaptive.ORDER.index(new) < adaptive.ORDER.index(current) else "up"
+        self.ui.info(f"Adaptive difficulty: stepping {direction} to {new.upper()}.")
 
     def _achievements(self) -> None:
         new = self.tracker.evaluate(self.stats)

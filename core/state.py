@@ -39,7 +39,7 @@ def load_config(path: Path | None = None) -> dict[str, Any]:
 class Settings:
     """Player-adjustable settings, backed by defaults from ``settings.json``."""
 
-    KEYS = ("difficulty", "theme", "animations", "animation_speed", "typewriter", "sound")
+    KEYS = ("difficulty", "theme", "animations", "animation_speed", "typewriter", "sound", "adaptive")
 
     def __init__(self, defaults: dict[str, Any], overrides: dict[str, Any] | None = None) -> None:
         """Build settings from defaults plus (validated) overrides."""
@@ -64,7 +64,7 @@ class Settings:
             return value in VALID_DIFFICULTIES
         if key == "theme":
             return value in VALID_THEMES
-        if key in ("animations", "typewriter", "sound"):
+        if key in ("animations", "typewriter", "sound", "adaptive"):
             return isinstance(value, bool)
         if key == "animation_speed":
             return isinstance(value, (int, float)) and 0.25 <= float(value) <= 4.0

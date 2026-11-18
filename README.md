@@ -35,9 +35,21 @@ Captured from real game runs with `python tools/screenshots.py`.
 | ![Black market](docs/screenshots/08-black-market.svg) | ![Hacker profile](docs/screenshots/09-profile.svg) |
 | **Black market** | **Profile and statistics** |
 
-<p align="center">
-  <img src="docs/screenshots/10-mission-complete.svg" alt="Mission complete with rewards and an achievement" width="720">
-</p>
+| ![Mission complete](docs/screenshots/10-mission-complete.svg) | ![Daily challenge](docs/screenshots/11-daily-challenge.svg) |
+|---|---|
+| **Mission complete:** itemised rewards and an achievement | **Daily challenge:** score card and your daily bests |
+
+## Replay features
+
+- **Daily challenge.** In MISSION DATABASE, press `d`. Every player gets the same
+  five-stage run each day (network, firewall, cipher, password, escape), built from the
+  date's seed (e.g. `20261118`). It works even before the campaign is installed.
+- **Best score per seed.** Each daily run is scored: 1000 base, minus 5 per tick over
+  par, 4 per % of peak detection and 30 per wrong guess, plus 200 for beating par and
+  300 for a ghost run. Your best per day and difficulty is saved and shown as a board.
+  Daily runs pay out XP and credits based on the score.
+- **Adaptive difficulty.** Turn it on in SETTINGS. Two failures in a row step the
+  difficulty down. Three clean wins in a row (peak detection under 40%) step it up.
 
 ## Setup
 
@@ -159,6 +171,11 @@ corruption and migration tests, and scripted end-to-end runs through every main-
 option (using small test missions, since the campaign is not installed).
 
 ## Known limitations
+
+- **Hard is currently too punishing.** With the tighter firewall, a 5-slot chain with
+  repeated rules takes about 7–9 probes. At +10% detection per wrong probe on Hard,
+  most runs hit 100% before the escape. The autopilot clears 30/30 daily runs on Easy
+  and Normal, but only 7/30 on Hard.
 
 - **No campaign yet.** Missions 1–10 are not defined, so CONTINUE and MISSION DATABASE
   report that no missions are installed. The scripted campaign test from §11 cannot

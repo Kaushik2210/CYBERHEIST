@@ -17,6 +17,16 @@ SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
 # version -> SQL applied to reach that version. Version 1 is schema.sql.
 MIGRATIONS: dict[int, str] = {
     2: "ALTER TABLE profile ADD COLUMN last_seed INTEGER NOT NULL DEFAULT 0;",
+    3: """CREATE TABLE IF NOT EXISTS scores (
+              run_key TEXT NOT NULL,
+              seed INTEGER NOT NULL,
+              best INTEGER NOT NULL,
+              ticks REAL NOT NULL,
+              peak REAL NOT NULL,
+              played_on TEXT NOT NULL,
+              plays INTEGER NOT NULL DEFAULT 1,
+              PRIMARY KEY (run_key, seed)
+          );""",
 }
 LATEST_VERSION = max(MIGRATIONS) if MIGRATIONS else 1
 MISSION_STATUSES = ("locked", "available", "completed")
@@ -176,6 +186,9 @@ class SaveManager:
                 raise SaveCorrupted(f"bad inventory row {r['item_id']}")
         for r in self.conn.execute("SELECT value FROM settings"):
             json.loads(r["value"])
+        for r in self.conn.execute("SELECT * FROM scores"):
+            if r["best"] < 0 or r["ticks"] < 0 or not (0 <= r["peak"] <= 100) or r["plays"] < 1:
+                raise SaveCorrupted(f"bad score row {r['run_key']}/{r['seed']}")
 
     # -- profile ---------------------------------------------------------------
     def load_profile(self) -> Player | None:
@@ -265,10 +278,39 @@ class SaveManager:
             for k, v in statistics.items():
                 conn.execute("INSERT INTO statistics VALUES (?, ?)", (k, float(v)))
 
+    # -- scores ----------------------------------------------------------------
+    def record_score(self, run_key: str, seed: int, score: int, ticks: float, peak: float,
+                     played_on: str) -> tuple[int, bool]:
+        """Store a run's score, keeping the best per (run_key, seed).
+
+        Returns (best score now on record, whether this run set a new best).
+        """
+        assert self.conn is not None
+        with self.transaction() as conn:
+            row = conn.execute("SELECT best, plays FROM scores WHERE run_key = ? AND seed = ?",
+                               (run_key, seed)).fetchone()
+            if row is None:
+                conn.execute("INSERT INTO scores VALUES (?, ?, ?, ?, ?, ?, 1)",
+                             (run_key, seed, score, ticks, peak, played_on))
+                return score, True
+            if score > row["best"]:
+                conn.execute("UPDATE scores SET best = ?, ticks = ?, peak = ?, played_on = ?, plays = plays + 1 "
+                             "WHERE run_key = ? AND seed = ?", (score, ticks, peak, played_on, run_key, seed))
+                return score, True
+            conn.execute("UPDATE scores SET plays = plays + 1 WHERE run_key = ? AND seed = ?", (run_key, seed))
+            return row["best"], False
+
+    def load_scores(self, run_key: str, limit: int = 7) -> list[dict[str, Any]]:
+        """Most recent best scores for a run type, newest seed first."""
+        assert self.conn is not None
+        rows = self.conn.execute("SELECT * FROM scores WHERE run_key = ? ORDER BY seed DESC LIMIT ?",
+                                 (run_key, limit))
+        return [dict(r) for r in rows]
+
     def wipe_progress(self) -> None:
         """Delete profile and progress (settings are kept)."""
         with self.transaction() as conn:
-            for table in ("profile", "mission_progress", "inventory", "achievements", "statistics"):
+            for table in ("profile", "mission_progress", "inventory", "achievements", "statistics", "scores"):
                 conn.execute(f"DELETE FROM {table}")
 
 

@@ -34,7 +34,7 @@ def briefing(ui: UI, m: Any, difficulty: str) -> None:
               f"Rewards: {m.reward_xp} XP, {m.reward_credits:,} cr",
               ui.paint("FAILURE CONDITIONS", "danger")]
     lines += [f"  - {f}" for f in m.failure]
-    ui.box(f"MISSION {m.mid:02d}: {m.title.upper()}", lines)
+    ui.box(f"MISSION {m.mid:02d}: {m.title.upper()}" if m.mid else m.title.upper(), lines)
 
 
 def profile(ui: UI, player: Any, cfg: dict[str, Any], inventory: Any) -> None:
@@ -100,6 +100,28 @@ def completion(ui: UI, m: Any, result: Any, rewards: Any) -> None:
     lines += [f"  {label:<40} +{xp:>4} XP  +{cr:>5,} cr" for label, xp, cr in rewards.lines]
     lines.append(f"  {'TOTAL':<40} +{rewards.xp:>4} XP  +{rewards.credits:>5,} cr")
     ui.box("MISSION COMPLETE", lines, role="ok")
+
+
+def daily_board(ui: UI, rows: list[dict[str, Any]], today_seed: int, difficulty: str) -> None:
+    """Your best daily-challenge scores, newest first."""
+    if not rows:
+        ui.info(f"No daily runs on {difficulty.upper()} yet. Today's seed: {today_seed}.")
+        return
+    table = []
+    for r in rows:
+        day = f"{str(r['seed'])[:4]}-{str(r['seed'])[4:6]}-{str(r['seed'])[6:]}"
+        mark = " (today)" if r["seed"] == today_seed else ""
+        table.append((day + mark, f"{r['best']:,}", f"{r['ticks']:.0f}", f"{r['peak']:.0f}%", r["plays"]))
+    ui.say(f"DAILY BESTS ({difficulty.upper()})", "accent")
+    ui.table(["DATE", "BEST", "TICKS", "PEAK", "PLAYS"], table)
+
+
+def daily_score(ui: UI, breakdown: Any, best: int, new_best: bool) -> None:
+    """Score card shown after a daily run."""
+    lines = [f"  {label:<34} {value:+6d}" for label, value in breakdown.lines]
+    lines += [f"  {'SCORE':<34} {breakdown.total:6d}", "",
+              ui.paint("NEW PERSONAL BEST!", "ok") if new_best else f"Today's best stays at {best:,}."]
+    ui.box("DAILY SCORE", lines, role="ok" if breakdown.total else "danger")
 
 
 def game_over(ui: UI, m: Any, reason: str) -> None:

@@ -8,7 +8,9 @@ KEYS = (
     "ciphers_solved", "firewalls_cracked", "passwords_cracked", "networks_mapped", "escapes",
     "wrong_guesses", "items_bought", "items_used", "ticks_total", "ghost_runs", "speed_runs",
     "credits_earned", "highest_detection", "mission10_clears",
+    "fail_streak", "clean_streak", "daily_runs", "daily_best",
 )
+CLEAN_PEAK = 40
 STAGE_KEYS = {"cipher": "ciphers_solved", "firewall": "firewalls_cracked", "password": "passwords_cracked",
               "network": "networks_mapped", "escape": "escapes"}
 
@@ -46,6 +48,8 @@ class Statistics:
         if success:
             v["missions_won"] += 1
             v["streak"] += 1
+            v["fail_streak"] = 0
+            v["clean_streak"] = v["clean_streak"] + 1 if peak_detection < CLEAN_PEAK else 0
             v["best_streak"] = max(v["best_streak"], v["streak"])
             v["credits_earned"] += credits_earned
             if peak_detection == 0:
@@ -57,6 +61,8 @@ class Statistics:
         else:
             v["missions_failed"] += 1
             v["streak"] = 0
+            v["fail_streak"] += 1
+            v["clean_streak"] = 0
 
     def dashboard_rows(self) -> list[tuple[str, str]]:
         """Label/value pairs for the statistics screen."""
@@ -77,6 +83,7 @@ class Statistics:
             ("Highest detection reached", f"{v['highest_detection']:.0f}%"),
             ("Total mission ticks", f"{v['ticks_total']:.0f}"),
             ("Credits earned", f"{int(v['credits_earned']):,}"),
+            ("Daily runs / best daily score", f"{int(v['daily_runs'])} / {int(v['daily_best'])}"),
         ]
 
     def to_rows(self) -> dict[str, float]:
