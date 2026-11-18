@@ -19,7 +19,7 @@ from interface.ui import UI, ConsoleIO, ScriptedIO
 from missions.mission_runner import Mission, MissionContext, run_mission
 from systems import adaptive
 from systems.achievements import AchievementTracker, notify
-from systems.daily import DAILY_KEY, build_daily, daily_seed, score_run
+from systems.daily import DAILY_KEY, DAILY_VERSION, build_daily, daily_seed, run_seed, score_run
 from systems.black_market import BlackMarket
 from systems.inventory import Inventory
 from systems.statistics import Statistics
@@ -386,11 +386,12 @@ class Game:
     def play_daily(self) -> None:
         """Play today's daily challenge and keep the best score per day and difficulty."""
         day = self.today()
-        seed = daily_seed(day)
+        seed = run_seed(day)
         m = build_daily(day)
         difficulty = self.settings.get("difficulty")
         screens.briefing(self.ui, m, difficulty)
-        self.ui.info(f"Seed {seed}. Everyone on {difficulty.upper()} gets this exact run today.")
+        self.ui.info(f"Seed {seed} (puzzle version {DAILY_VERSION}). Everyone on {difficulty.upper()} "
+                     "gets this exact run today.")
         if not self.ui.confirm("Begin the daily run?", lambda: "y"):
             self.ui.info("Daily run postponed.")
             return
@@ -403,7 +404,7 @@ class Game:
         if not r.success:
             screens.game_over(self.ui, m, r.reason)
         breakdown = score_run(r, m.par_ticks)
-        best, new_best = self.save.record_score(f"{DAILY_KEY}-{difficulty}", seed, breakdown.total,
+        best, new_best = self.save.record_score(f"{DAILY_KEY}-{difficulty}", daily_seed(day), breakdown.total,
                                                 r.ticks, r.peak, day.isoformat())
         screens.daily_score(self.ui, breakdown, best, new_best)
         pl = self.player

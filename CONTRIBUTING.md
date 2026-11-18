@@ -11,8 +11,8 @@ The two biggest open pieces are:
   runner, briefing screen, rewards and unlock order are already in place. See
   [Adding the campaign](README.md#adding-the-campaign) for the format.
 - **Data extraction** (`challenges/extraction.py`): the file-extraction challenge
-  described in the README. Missions 4, 5, 8 and 10 need it, and the Data Scanner item
-  has nothing to act on until it exists.
+  described in the README. Missions 4, 5, 8 and 10 need it. The Data Scanner currently
+  reveals hidden network nodes and should also reveal hidden files once this exists.
 
 Bug fixes, balance tweaks in `config/settings.json`, and accessibility or layout
 improvements are welcome too. For anything large, open an issue first so we can agree
@@ -78,6 +78,10 @@ python -m pytest -q
   loop with scripted input.
 
 CI runs the suite on Windows, Linux and macOS with Python 3.11, 3.12 and 3.13.
+
+- **Changing puzzle generation?** If `test_daily_puzzles_unchanged_for_this_version`
+  fails, your change alters the daily runs. Bump `DAILY_VERSION` in `systems/daily.py`
+  and add the new fingerprint the test prints. This keeps old and new daily scores apart.
 
 ## Screenshots
 

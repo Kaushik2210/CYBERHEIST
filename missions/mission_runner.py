@@ -195,6 +195,12 @@ class MissionContext:
         if iid == "emergency_override" and kind in ("firewall", "password", "cipher"):
             p.add_attempt()
             return f"Override: +1 attempt ({p.remaining} left)."
+        if iid == "data_scanner" and kind == "network":
+            unseen = sorted(p.hidden - p.discovered)
+            if not unseen:
+                return None
+            p.discovered |= set(unseen)
+            return f"Scanner: hidden node(s) revealed without a trace: {', '.join(unseen)}."
         return None
 
 
@@ -339,7 +345,8 @@ def play_network(ctx: MissionContext, params: dict[str, Any]) -> None:
     ctx.objective = f"Map the network and route to {m.target}"
     ctx.help_text = ("'scan' reveals the next layer (costs ticks" + (" and detection" if tough else "")
                      + "). 'routes' lists paths. 'route N' commits; locked nodes must be cracked first. "
-                     "'map' draws the map.")
+                     "'map' draws the map. 'use scanner' reveals hidden nodes with no detection.")
+    ctx.puzzle, ctx.stage_kind = m, "network"
     plan = iter(m.solver_commands())
     while True:
         ctx.hud()

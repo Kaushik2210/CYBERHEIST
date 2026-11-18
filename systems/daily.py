@@ -8,18 +8,29 @@ from typing import Any
 from core.rng import GameRNG
 from missions.mission_runner import Mission, MissionResult
 
-DAILY_KEY = "daily"
 CIPHERS = ("caesar", "vigenere", "substitution", "layered", "pattern", "hex")
+
+# Bump this whenever a change alters which puzzles a date produces (generators, solver,
+# stage parameters). Each version gets its own seeds and its own score boards, so scores
+# are only ever compared between players who faced the same puzzles.
+# tests/test_replay.py fails with a reminder if generation changes without a bump.
+DAILY_VERSION = 1
+DAILY_KEY = f"daily-v{DAILY_VERSION}"
 
 
 def daily_seed(day: dt.date) -> int:
-    """Seed for a calendar day, e.g. 2026-11-17 -> 20261117."""
+    """Calendar key for a day, e.g. 2026-11-17 -> 20261117 (what the score board shows)."""
     return int(day.strftime("%Y%m%d"))
 
 
+def run_seed(day: dt.date) -> int:
+    """The seed a day's run is generated from: date plus puzzle version, e.g. 2026111701."""
+    return daily_seed(day) * 100 + DAILY_VERSION
+
+
 def build_daily(day: dt.date) -> Mission:
-    """Build the day's run: every challenge type, with the details drawn from the date's seed."""
-    rng = GameRNG(daily_seed(day))
+    """Build the day's run: every challenge type, with the details drawn from the run seed."""
+    rng = GameRNG(run_seed(day))
     stages = [
         {"type": "network", "label": "Map the grid", "params": {"hidden": rng.randint(1, 2),
                                                                   "target": rng.choice(["DATABASE", "BACKUP"])}},

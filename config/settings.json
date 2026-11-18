@@ -66,7 +66,7 @@
     "neural_accelerator": {"name": "Neural Accelerator", "price": 2500, "kind": "passive",    "uses": 1, "desc": "Tick costs x0.8."},
     "signal_mask":        {"name": "Signal Mask",        "price": 1800, "kind": "passive",    "uses": 1, "desc": "Absorbs one alarm per mission."},
     "quantum_decoder":    {"name": "Quantum Decoder",    "price": 1200, "kind": "consumable", "uses": 3, "desc": "Reveals one extra puzzle detail."},
-    "data_scanner":       {"name": "Data Scanner",       "price": 1000, "kind": "consumable", "uses": 3, "desc": "Reveals hidden files."},
+    "data_scanner":       {"name": "Data Scanner",       "price": 1000, "kind": "consumable", "uses": 3, "desc": "Reveals hidden network nodes, no detection."},
     "emergency_override": {"name": "Emergency Override", "price": 1500, "kind": "consumable", "uses": 1, "desc": "One extra attempt."}
   },
   "max_equipped": 2,

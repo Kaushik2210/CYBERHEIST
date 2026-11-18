@@ -43,7 +43,12 @@ Captured from real game runs with `python tools/screenshots.py`.
 
 - **Daily challenge.** In MISSION DATABASE, press `d`. Every player gets the same
   five-stage run each day (network, firewall, cipher, password, escape), built from the
-  date's seed (e.g. `20261118`). It works even before the campaign is installed.
+  date plus a puzzle version (seed `2026111801` is 18 Nov 2026, version 1). It works even
+  before the campaign is installed.
+- **Versioned daily puzzles.** If an update changes which puzzles a date produces,
+  `DAILY_VERSION` in `systems/daily.py` goes up. Each version gets new seeds and its own
+  score boards, so scores only compare runs that faced the same puzzles. A fingerprint
+  test fails with a reminder if generation changes without a bump.
 - **Best score per seed.** Each daily run is scored: 1000 base, minus 5 per tick over
   par, 4 per % of peak detection and 30 per wrong guess, plus 200 for beating par and
   300 for a ghost run. Your best per day and difficulty is saved and shown as a board.
@@ -176,8 +181,8 @@ option (using small test missions, since the campaign is not installed).
 - **No campaign yet.** Missions 1–10 are not defined, so CONTINUE and MISSION DATABASE
   report that no missions are installed. The scripted campaign test from §11 cannot
   run until they exist.
-- **No data extraction.** Missions 4, 5, 8 and 10 need it, and the Data Scanner has
-  nothing to act on until it exists.
+- **No data extraction.** Missions 4, 5, 8 and 10 need it. Until it exists, the Data
+  Scanner reveals hidden network nodes instead of hidden files.
 - Sound is the terminal bell only, and off by default.
 - Time is measured in ticks, not seconds; nothing happens while you think.
 - Box-drawing characters fall back to ASCII when the terminal encoding can't print

@@ -226,11 +226,11 @@ def scene_daily() -> CaptureIO:
     import datetime as dt
     from interface.ui import ScriptedIO
     from missions.mission_runner import run_mission
-    from systems.daily import build_daily, daily_seed, score_run
+    from systems.daily import build_daily, daily_seed, run_seed, score_run
     day = dt.date(2026, 11, 18)
     m = build_daily(day)
     quiet = UI(ScriptedIO(autopilot=True), Theme(color=False), animations=False)
-    r = run_mission(quiet, GameRNG(daily_seed(day)), CFG, m, "normal")
+    r = run_mission(quiet, GameRNG(run_seed(day)), CFG, m, "normal")
     breakdown = score_run(r, m.par_ticks)
     io = CaptureIO()
     ui = make_ui(io)

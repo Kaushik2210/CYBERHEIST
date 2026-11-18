@@ -69,6 +69,32 @@ def test_no_effect_keeps_charge_and_bad_names_are_handled():
     assert "Usable items" in io.text()
 
 
+def test_scanner_reveals_hidden_nodes_without_detection():
+    from challenges import network
+    seed = 4
+    m = network.generate(GameRNG(seed).fork("network"), "DATABASE", 2, 1)
+    full = network.NetworkMap(dict(m.edges), set(m.hidden), m.target, set(m.nodes), locked=set(m.locked))
+    open_route = next(i for i, r in enumerate(full.routes(), 1) if not r.locked)
+    # Four normal scans map the visible layers; the scanner replaces the deep scan.
+    ctx, inv, io = make(["scan"] * 4 + ["use scanner", "use scanner", f"route {open_route}"],
+                        owned=["data_scanner"], seed=seed)
+    run_stages(ctx, [{"type": "network", "params": {"hidden": 2}}])
+    out = io.text()
+    assert "hidden node(s) revealed without a trace: PROXY-X, RELAY-7" in out
+    assert "has no effect here. Charge kept." in out          # second use: nothing left to find
+    assert inv.uses("data_scanner") == 2 and ctx.found_hidden
+    assert ctx.items_used == ["data_scanner"]
+
+
+def test_scanner_has_no_effect_outside_network_stages():
+    from challenges import firewall
+    seed = 4
+    p = firewall.generate(GameRNG(seed).fork("firewall"), 6, 4, 8, margin=2)
+    ctx, inv, io = make(["use scanner", " ".join(str(i + 1) for i in p.secret)], owned=["data_scanner"], seed=seed)
+    run_stages(ctx, [{"type": "firewall", "params": {"pool": 6, "length": 4, "attempts": 8}}])
+    assert inv.uses("data_scanner") == 3 and "no effect here" in io.text()
+
+
 def test_inv_command_lists_items():
     ctx, _, io = make(["inv", "x"], owned=["cipher_toolkit", "ghost_proxy"], equip=["ghost_proxy"])
     assert ctx.ask("t") == "x"
