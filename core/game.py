@@ -31,13 +31,19 @@ MAIN_OPTIONS = [
 ]
 
 
-def load_campaign() -> list[Mission]:
-    """Load the campaign from missions/mission_data.py; an empty list if it isn't installed."""
+def load_campaign() -> tuple[list[Mission], list[str]]:
+    """Load the campaign and any problems found while loading it.
+
+    missions/mission_data.py wins if it exists. Otherwise the TOML mission files are read
+    from missions/campaign/ and ~/.cyberheist/missions/ (see docs/mission-format.md).
+    """
     try:
         from missions.mission_data import MISSIONS  # type: ignore[import-not-found]
     except ImportError:
-        return []
-    return list(MISSIONS)
+        from missions.loader import BUNDLED_DIR, USER_DIR, load_dirs
+        res = load_dirs(BUNDLED_DIR, USER_DIR)
+        return res.missions, res.problems
+    return list(MISSIONS), []
 
 
 class Game:
@@ -53,7 +59,7 @@ class Game:
         self.cfg = cfg or load_config()
         self.rng = GameRNG(seed)
         self.save = SaveManager(save_path)
-        self.missions = load_campaign() if missions is None else list(missions)
+        self.missions, self.mission_problems = load_campaign() if missions is None else (list(missions), [])
         self.clock = clock
         self._last_clock = clock()
         self.player: Player | None = None
@@ -205,7 +211,10 @@ class Game:
             if self.missions:
                 screens.mission_database(self.ui, self.missions, self.progress)
             else:
-                self.ui.warn("No missions are installed (missions/mission_data.py is missing).")
+                self.ui.warn("No missions are installed. Add mission files (see docs/mission-format.md).")
+            if self.mission_problems:
+                self.ui.warn(f"{len(self.mission_problems)} problem(s) in mission files kept some out. "
+                             "Run 'cyberheist --check-missions' for details.")
             difficulty = self.settings.get("difficulty")
             screens.daily_board(self.ui, self.save.load_scores(f"{DAILY_KEY}-{difficulty}"),
                                 daily_seed(self.today()), difficulty)

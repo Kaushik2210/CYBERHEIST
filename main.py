@@ -28,6 +28,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--reset-save", action="store_true",
                     help="move the current save aside (save.reset-<timestamp>.db) and start fresh")
     ap.add_argument("--save-path", type=Path, default=DEFAULT_SAVE, help=f"save file (default {DEFAULT_SAVE})")
+    ap.add_argument("--check-missions", nargs="?", const="", metavar="DIR", type=str,
+                    help="check mission files (default: the bundled and ~/.cyberheist/missions folders), "
+                         "playtest them with the autopilot, and exit")
     return ap.parse_args(argv)
 
 
@@ -43,6 +46,12 @@ def main(argv: list[str] | None = None) -> int:
     """Run the game. Returns the process exit code."""
     args = parse_args(argv)
     enable_ansi()
+    if args.check_missions is not None:
+        from missions.loader import BUNDLED_DIR, USER_DIR, check_report
+        dirs = [Path(args.check_missions)] if args.check_missions else [BUNDLED_DIR, USER_DIR]
+        lines, ok = check_report(dirs)
+        print("\n".join(lines))
+        return 0 if ok else 1
     if args.reset_save:
         sm = SaveManager(args.save_path)
         backup = sm.reset_file()

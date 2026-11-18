@@ -17,9 +17,9 @@ networking and no real tool or target anywhere in the code.
 </p>
 
 > **Status:** the engine, all challenge types except extraction, the systems and the
-> full menu are built and tested. The 10-mission campaign (`missions/mission_data.py`)
-> and the data-extraction challenge (`challenges/extraction.py`) are **not written
-> yet**. See [Known limitations](#known-limitations).
+> full menu are built and tested. The 10-mission campaign and the data-extraction challenge (`challenges/extraction.py`) are **not written
+> yet**, but missions can now be written as plain TOML files (see
+> [Adding the campaign](#adding-the-campaign)). See [Known limitations](#known-limitations).
 
 ## Screenshots
 
@@ -170,7 +170,7 @@ Black market: `buy N`, `equip N`, `unequip N`, `b`. Up to 2 passives equipped.
 | §5E detection monitor | `challenges/detection.py` | Done |
 | §5F data extraction | `challenges/extraction.py` | **Not written** |
 | §5G escape sequence | `challenges/escape.py` | Done |
-| §6 10-mission campaign | `missions/mission_data.py` | **Not written** (runner, briefing, rewards and unlock order are ready) |
+| §6 10-mission campaign | `missions/campaign/*.toml` | **Not written** (file format, loader, checker, runner, rewards and unlock order are ready) |
 | §7 black market, inventory, equip limit | `systems/black_market.py`, `systems/inventory.py` | Done |
 | §8 random events (fair) | `systems/random_events.py` | Done |
 | §9 achievements | `systems/achievements.py` | Done |
@@ -179,18 +179,31 @@ Black market: `buy N`, `equip N`, `unequip N`, `b`. Up to 2 passives equipped.
 
 ## Adding the campaign
 
-`core/game.py` loads `MISSIONS` from `missions/mission_data.py` if that file exists.
-Each entry is a `missions.mission_runner.Mission` with an id, title, tier, story text,
-objectives, `stages`, tick numbers and rewards. A stage looks like:
+Missions are plain TOML files, one per mission, so you can write them without touching
+Python. The game reads `missions/campaign/` and then `~/.cyberheist/missions/`:
 
-```python
-{"type": "firewall", "label": "Gate", "params": {"pool": 6, "length": 4, "attempts": 8}}
+```toml
+id = 1
+title = "Practice Run"
+# ...story text, tick budget and rewards...
+
+[[stages]]
+type = "firewall"
+label = "Perimeter lock"
+params = { pool = 6, length = 4 }
 ```
 
-Stage types: `shell`, `network`, `firewall`, `cipher` (`kind`: caesar, vigenere,
-substitution, binary, hex, pattern, layered; optional `tough`), `password`, `escape`. Any stage can add
-`"patrol": N` to raise detection by N per tick while it runs. Optional objectives use
-`kind` `max_ticks`, `max_detection`, `hidden_node` or `no_wrong`.
+Check them before playing:
+
+```bash
+cyberheist --check-missions
+```
+
+The checker lists every problem in every file. It then plays each mission with the
+autopilot on all three difficulties and flags any the autopilot can't clear on Easy.
+Bad files are skipped, never crash the game. The full format, with every stage param
+and its range, is in [docs/mission-format.md](docs/mission-format.md). A working
+example is in [docs/examples/example-mission.toml](docs/examples/example-mission.toml).
 
 ## Tests
 
@@ -205,8 +218,8 @@ option (using small test missions, since the campaign is not installed).
 ## Known limitations
 
 
-- **No campaign yet.** Missions 1–10 are not defined, so CONTINUE and MISSION DATABASE
-  report that no missions are installed. The scripted campaign test from §11 cannot
+- **No campaign yet.** Missions 1–10 are not written, so CONTINUE and MISSION DATABASE
+  report that no missions are installed. Add mission files to fix that. The scripted campaign test from §11 cannot
   run until they exist.
 - **No data extraction.** Missions 4, 5, 8 and 10 need it. Until it exists, the Data
   Scanner reveals hidden network nodes instead of hidden files.

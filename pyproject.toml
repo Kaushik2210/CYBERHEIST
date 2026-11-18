@@ -40,6 +40,7 @@ packages = ["challenges", "config", "core", "database", "interface", "missions",
 [tool.setuptools.package-data]
 config = ["settings.json"]
 database = ["schema.sql"]
+missions = ["campaign/*.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

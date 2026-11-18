@@ -1,0 +1,47 @@
+# An example mission file. Copy it to ~/.cyberheist/missions/ (or missions/campaign/)
+# and run `cyberheist --check-missions` to check it. One mission per file.
+
+id = 1
+title = "Practice Run"
+tier = "Training"
+intro = "A simulated grid built for practice. Nothing here is real."
+briefing = "Learn the shell, then get past one lock and leave cleanly."
+primary = ["Finish orientation", "Open the perimeter lock", "Escape the grid"]
+completion = "Practice run complete. The simulation resets behind you."
+
+par_ticks = 40      # target time; finishing under it pays a speed bonus
+grace_ticks = 60    # past this, every tick adds detection
+max_ticks = 160     # hard limit: the run fails here
+reward_xp = 300
+reward_credits = 500
+# events = true     # random events during the run (default true)
+
+[[stages]]
+type = "shell"
+label = "Orientation"
+
+[[stages]]
+type = "firewall"
+label = "Perimeter lock"
+params = { pool = 6, length = 4 }
+
+[[stages]]
+type = "escape"
+label = "Way out"
+params = { rounds = 3 }
+
+[[optional]]
+id = "quick"
+text = "Finish in 40 ticks or fewer"
+kind = "max_ticks"
+value = 40
+xp = 100
+credits = 150
+
+[[optional]]
+id = "quiet"
+text = "Keep peak detection under 20%"
+kind = "max_detection"
+value = 20
+xp = 100
+credits = 150

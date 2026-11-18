@@ -7,9 +7,9 @@ rules the codebase follows, and how to get a change merged.
 
 The two biggest open pieces are:
 
-- **The campaign** (`missions/mission_data.py`): ten missions defined as data. The
-  runner, briefing screen, rewards and unlock order are already in place. See
-  [Adding the campaign](README.md#adding-the-campaign) for the format.
+- **The campaign** (`missions/campaign/*.toml`): ten missions written as TOML files,
+  no Python needed. The format is in [docs/mission-format.md](docs/mission-format.md).
+  Run `cyberheist --check-missions` before opening a pull request.
 - **Data extraction** (`challenges/extraction.py`): the file-extraction challenge
   described in the README. Missions 4, 5, 8 and 10 need it. The Data Scanner currently
   reveals hidden network nodes and should also reveal hidden files once this exists.

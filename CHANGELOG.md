@@ -4,6 +4,16 @@ All notable changes to CYBERHEIST are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- **Mission files:** write campaign missions as TOML files in `missions/campaign/` or
+  `~/.cyberheist/missions/`. See `docs/mission-format.md` and the example mission.
+- **`--check-missions`:** reports every problem in every mission file, then playtests
+  each mission with the autopilot on all three difficulties. Exits with 1 on problems.
+- Bad mission files are skipped and counted in the mission database instead of
+  stopping the game.
+
 ## [0.1.0] - 2026-11-18
 
 First public release. The engine, every challenge type except data extraction, all
@@ -41,7 +51,7 @@ yet. The daily challenge is the complete game loop for now.
   CI on Windows, Linux and macOS with Python 3.11–3.13.
 
 ### Known gaps
-- The ten campaign missions (`missions/mission_data.py`) are not written.
+- The ten campaign missions are not written.
 - The data-extraction challenge (`challenges/extraction.py`) is not written.
 
 [0.1.0]: https://github.com/Kaushik2210/CYBERHEIST/releases/tag/v0.1.0

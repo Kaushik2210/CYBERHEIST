@@ -106,7 +106,7 @@ def test_version_is_consistent_everywhere(capsys):
     from core import __version__
     root = Path(__file__).resolve().parent.parent
     pyproject = re.search(r'^version = "([^"]+)"', (root / "pyproject.toml").read_text(), re.M).group(1)
-    changelog = re.search(r"^## \[([^\]]+)\]", (root / "CHANGELOG.md").read_text(encoding="utf-8"), re.M).group(1)
+    changelog = re.search(r"^## \[(\d[^\]]*)\]", (root / "CHANGELOG.md").read_text(encoding="utf-8"), re.M).group(1)
     assert __version__ == pyproject == changelog
     with pytest.raises(SystemExit):
         main.parse_args(["--version"])
