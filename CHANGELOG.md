@@ -4,10 +4,10 @@ All notable changes to CYBERHEIST are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.2.0] - 2026-11-18
 
 ### Added
-- **Mission files:** write campaign missions as TOML files in `missions/campaign/` or
+- **Mission files:** write campaign missions as TOML files in `cyberheist/missions/campaign/` or
   `~/.cyberheist/missions/`. See `docs/mission-format.md` and the example mission.
 - **`--check-missions`:** reports every problem in every mission file, then playtests
   each mission with the autopilot on all three difficulties. Exits with 1 on problems.
@@ -68,4 +68,5 @@ yet. The daily challenge is the complete game loop for now.
 - The ten campaign missions are not written.
 - The data-extraction challenge (`challenges/extraction.py`) is not written.
 
+[0.2.0]: https://github.com/Kaushik2210/CYBERHEIST/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Kaushik2210/CYBERHEIST/releases/tag/v0.1.0
