@@ -13,6 +13,11 @@ All notable changes to CYBERHEIST are recorded here. The format follows
   each mission with the autopilot on all three difficulties. Exits with 1 on problems.
 - Bad mission files are skipped and counted in the mission database instead of
   stopping the game.
+- **Run debrief:** after each stage, a report of ticks, detection and wrong guesses, how
+  your probes compared with the solver's par, the exact guess that contradicted an
+  earlier clue, and one tip. Runs with several stages end with a summary table and
+  the biggest detection leak. A new Debrief setting turns it off.
+- Screenshot of the debrief (`docs/screenshots/12-debrief.svg`).
 
 ## [0.1.0] - 2026-11-18
 

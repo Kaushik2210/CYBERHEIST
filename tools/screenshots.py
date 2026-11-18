@@ -13,7 +13,7 @@ from typing import Callable
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from challenges import encryption  # noqa: E402
+from challenges import encryption, firewall  # noqa: E402
 from core.game import MAIN_OPTIONS  # noqa: E402
 from core.player import Player  # noqa: E402
 from core.progression import RewardBreakdown  # noqa: E402
@@ -242,6 +242,26 @@ def scene_daily() -> CaptureIO:
     return io
 
 
+def scene_debrief() -> list[str]:
+    """A firewall stage with a careless repeat probe, its debrief, and the run summary."""
+    from missions.mission_runner import Mission, run_mission
+    seed = 11
+    p = firewall.generate(GameRNG(seed).fork("firewall"), 6, 4, 8, margin=3)
+    miss = next(c for c in firewall.candidates(6, 4, False) if firewall.score(c, p.secret) == (1, 1))
+    probe = " ".join(str(i + 1) for i in miss)
+    m = Mission(mid=4, title="Debrief", tier="Demo", intro="", briefing="", primary=["x"], optional=[],
+                stages=[{"type": "firewall", "label": "Gate firewall", "params": {"margin": 3}},
+                        {"type": "escape", "label": "Exfiltration", "params": {"rounds": 3}}],
+                par_ticks=30, grace_ticks=60, max_ticks=200, reward_xp=0, reward_credits=0,
+                completion="", events=False)
+    io = CaptureIO([probe, probe])
+    run_mission(make_ui(io), GameRNG(seed), CFG, m, "normal")
+    lines = io.lines()
+    first = next(i for i, line in enumerate(lines) if "DEBRIEF" in line)
+    second = next(i for i, line in enumerate(lines) if "DEBRIEF: STAGE 2" in line)
+    return lines[first - 6:first + 8] + lines[second:]
+
+
 SCENES = {
     "01-boot": ("Boot sequence", scene_boot, None),
     "02-main-menu": ("Main menu", scene_menu, None),
@@ -254,6 +274,7 @@ SCENES = {
     "09-profile": ("Hacker profile and statistics", scene_profile, None),
     "10-mission-complete": ("Mission complete", scene_complete, None),
     "11-daily-challenge": ("Daily challenge score", scene_daily, None),
+    "12-debrief": ("Run debrief", scene_debrief, None),
 }
 
 
@@ -261,7 +282,8 @@ def main() -> None:
     """Render every scene to docs/screenshots."""
     OUT.mkdir(parents=True, exist_ok=True)
     for name, (title, fn, limit) in SCENES.items():
-        lines = fn().lines()
+        got = fn()
+        lines = got if isinstance(got, list) else got.lines()
         if limit:
             lines = lines[:limit]
         (OUT / f"{name}.svg").write_text(to_svg(lines, f"cyberheist — {title}"), encoding="utf-8")

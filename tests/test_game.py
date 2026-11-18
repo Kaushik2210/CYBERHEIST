@@ -64,7 +64,7 @@ def test_every_main_menu_option(tmp_path):
         "4", "buy 1", "equip 1", "unequip 1", "buy 99", "?", "sell 1", "b",  # MARKET
         "5", "x", "s", "b",                     # PROFILE + manual save
         "6",                                    # ACHIEVEMENTS
-        "7", "1", "2", "7", "8", "b",           # SETTINGS: difficulty, theme, adaptive, reset, back
+        "7", "1", "2", "7", "8", "9", "b",      # SETTINGS: difficulty, theme, adaptive, debrief, reset, back
         "1", "y", "Morpheus",                   # NEW GAME: confirm wipe, re-register, plays mission 1
         "8",                                    # EXIT
     ]
@@ -150,3 +150,13 @@ def test_missing_campaign_is_reported(tmp_path):
 def test_new_game_can_be_cancelled(tmp_path):
     g, io = run(tmp_path, ["Neo_01", "2", "1", "n", "8"], autopilot=True)
     assert "Kept your current profile" in io.text() and g.player.alias == "Neo_01"
+
+
+def test_debrief_setting_shows_and_hides_the_stage_report(tmp_path):
+    two = [mission(1, [SHELL, SHELL])]
+    g, io = run(tmp_path / "on", ["Neo_01", "2", "y", "8"], autopilot=True, missions=two)
+    assert g.settings.get("debrief") is True
+    assert io.text().count("DEBRIEF: STAGE") == 2 and "RUN SUMMARY" in io.text()
+    g, io = run(tmp_path / "off", ["Neo_01", "7", "8", "b", "2", "y", "8"], autopilot=True, missions=two)
+    assert g.settings.get("debrief") is False
+    assert "DEBRIEF" not in io.text() and g.progress[1]["clears"] == 1

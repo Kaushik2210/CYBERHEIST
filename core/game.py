@@ -336,7 +336,8 @@ class Game:
             self.persist()
             self._stage_break()
 
-        result = run_mission(self.ui, GameRNG(seed), self.cfg, m, difficulty, self.inventory, checkpoint, between)
+        result = run_mission(self.ui, GameRNG(seed), self.cfg, m, difficulty, self.inventory, checkpoint, between,
+                             debrief=self.settings.get("debrief"))
         self._settle(m, result, difficulty)
 
     def _stage_break(self) -> None:
@@ -409,7 +410,8 @@ class Game:
         def between(ctx: MissionContext, n: int) -> None:
             self._stage_break()
 
-        r = run_mission(self.ui, GameRNG(seed), self.cfg, m, difficulty, self.inventory, None, between)
+        r = run_mission(self.ui, GameRNG(seed), self.cfg, m, difficulty, self.inventory, None, between,
+                        debrief=self.settings.get("debrief"))
         if not r.success:
             screens.game_over(self.ui, m, r.reason)
         breakdown = score_run(r, m.par_ticks)

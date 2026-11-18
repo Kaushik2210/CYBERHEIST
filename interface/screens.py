@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from interface.ui import UI
+from interface.ui import UI, wrap
 
 LOGO = [
     r"  ______   ______  _____ ____  _   _ _____ ___ ____ _____ ",
@@ -129,3 +129,29 @@ def game_over(ui: UI, m: Any, reason: str) -> None:
     ui.box("CONNECTION TERMINATED", [f"Mission {m.mid:02d}: {m.title}", "", reason, "",
                                      "Progress up to your last mission is safe. Try again from CONTINUE."],
            role="danger")
+
+
+def stage_debrief(ui: UI, n: int, total: int, log: Any, facts: list[str], tips: list[str]) -> None:
+    """Short report after a stage: cost, solver comparison, and the most useful tip."""
+    outcome = "cleared" if log.cleared else "FAILED"
+    head = (f"{outcome}  |  ticks {log.ticks:.0f}  |  detection {log.detection:+.0f}  |  "
+            f"wrong {log.wrong}")
+    lines = [ui.paint(head, "ok" if log.cleared else "danger")] + facts
+    if tips:
+        lines.append(ui.paint("TIP: " + tips[0], "warn"))
+    ui.box(f"DEBRIEF: STAGE {n}/{total} {log.label.upper()}"[:60], lines, role="dim")
+
+
+def run_summary(ui: UI, logs: list[Any], leak: Any, det: dict[str, Any]) -> None:
+    """Table of every stage in the run, plus where most detection came from."""
+    from systems.debrief import summarize
+    ui.rule()
+    ui.say("RUN SUMMARY", "accent")
+    rows = [(i, log.label[:18], log.kind, "ok" if log.cleared else "FAILED", log.par_cell, log.wrong,
+             f"{log.detection:+.0f}", f"{log.ticks:.0f}") for i, log in enumerate(logs, 1)]
+    ui.table(["#", "STAGE", "TYPE", "RESULT", "VS PAR", "WRONG", "DET", "TICKS"], rows)
+    if leak is not None:
+        tips = summarize(leak, det)[1]
+        ui.warn(f"Biggest leak: {leak.label} ({leak.detection:+.0f} detection).")
+        for line in wrap(tips[0], UI.WIDTH - 4) if tips else []:
+            ui.say("    " + line, "dim")

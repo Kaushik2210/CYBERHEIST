@@ -40,8 +40,19 @@ Captured from real game runs with `python tools/screenshots.py`.
 |---|---|
 | **Mission complete:** itemised rewards and an achievement | **Daily challenge:** score card and your daily bests |
 
+<p align="center">
+  <img src="docs/screenshots/12-debrief.svg" alt="Run debrief after a firewall stage, and the run summary" width="720">
+</p>
+<p align="center"><b>Run debrief:</b> the guess that ignored a clue, your probes against the solver's, and where detection came from</p>
+
 ## Replay features
 
+- **Run debrief.** Each stage ends with a short report: ticks, detection added and wrong
+  guesses. It compares your probes with the solver's par and names the exact guess
+  that ignored an earlier clue ("probe 3 contradicted the feedback from probe 1"). It
+  also gives one tip: a safer route you skipped, a cheaper lab tool, or how to handle
+  the escape round you missed. Runs with several stages end with a summary table and
+  the stage that leaked the most detection. Turn it off in SETTINGS.
 - **Daily challenge.** In MISSION DATABASE, press `d`. Every player gets the same
   five-stage run each day (network, firewall, cipher, password, escape), built from the
   date plus a puzzle version (seed `2026111801` is 18 Nov 2026, version 1). It works even

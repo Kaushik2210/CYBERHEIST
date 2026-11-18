@@ -10,6 +10,7 @@ from core.rng import GameRNG
 from core.state import MissionAborted, MissionFailed
 from interface import screens
 from interface.ui import UI, visible_len
+from systems.debrief import ChainLog, StageLog, biggest_leak, summarize
 from systems.inventory import Inventory
 from systems.random_events import EventEngine
 
@@ -57,6 +58,9 @@ class MissionContext:
         self.max_ticks = max_ticks
         self.ticks = 0.0
         self.wrong_guesses = 0
+        self.log = StageLog("", "")
+        self.logs: list[StageLog] = []
+        self.debrief = True
         self.objective = ""
         self.help_text = ""
         self.found_hidden = False
@@ -230,6 +234,8 @@ def play_firewall(ctx: MissionContext, params: dict[str, Any]) -> None:
 
 def crack_chain(ctx: MissionContext, p: firewall.FirewallPuzzle, name: str) -> None:
     """Guess loop shared by firewall stages and locked network nodes. Raises MissionFailed."""
+    chain = ChainLog(name if name == "Firewall" else f"Lock {name}", p.par)
+    ctx.log.chains.append(chain)
     while not p.solved:
         if p.remaining <= 0:
             raise MissionFailed(f"{name} locked out: no attempts left.")
@@ -239,13 +245,17 @@ def crack_chain(ctx: MissionContext, p: firewall.FirewallPuzzle, name: str) -> N
         if isinstance(parsed, str):
             ctx.ui.warn(parsed)
             continue
-        careful = all(firewall.score(parsed, g) == fb for g, fb in p.history)
+        clash = next((i for i, (g, fb) in enumerate(p.history, 1) if firewall.score(parsed, g) != fb), None)
+        careful = clash is None
         exact, partial = p.guess(parsed)
+        chain.used, chain.solved = len(p.history), p.solved
+        if clash is not None:
+            chain.careless.append((chain.used, clash))
         ctx.spend()
         if p.solved:
             used = len(p.history)
             verdict = ("You beat the solver!" if used < p.par
-                       else "Matched the solver." if used == p.par else "The solver did it faster.")
+                       else "Matched the solver." if used == p.par else "Solver was faster.")
             ctx.ui.ok(f"{name} chain accepted in {used} probe(s). Solver par: {p.par}. {verdict}")
         else:
             ctx.ui.say(f"  exact {exact}  partial {partial}", "accent")
@@ -264,6 +274,7 @@ def play_cipher(ctx: MissionContext, params: dict[str, Any]) -> None:
     ctx.help_text = ("Type the plaintext. 'hint' costs ticks; 'shift N', 'apply KEY' and 'unhex' are lab tools"
                      + (" (each use is logged: +detection)." if tough else "."))
     ctx.ui.box(f"CIPHER LAB: {p.kind.upper()}", [p.brief, "", p.ciphertext])
+    ctx.log.tough = tough
     while not p.solved:
         if p.remaining <= 0:
             raise MissionFailed("Cipher lab locked: too many wrong decodes.")
@@ -273,6 +284,7 @@ def play_cipher(ctx: MissionContext, params: dict[str, Any]) -> None:
         if low == "hint":
             hint = p.next_hint()
             ctx.ui.info(hint or "No hints left.")
+            ctx.log.hints += bool(hint)
             if hint and ctx.free_hints > 0:
                 ctx.free_hints -= 1
                 ctx.ui.ok("Free hint from the exposed vulnerability.")
@@ -281,6 +293,7 @@ def play_cipher(ctx: MissionContext, params: dict[str, Any]) -> None:
         elif low == "unhex" or low.startswith(("shift ", "apply ")):
             verb, _, arg = raw.partition(" ")
             ctx.ui.say(p.tool(arg.strip(), verb.lower()), "accent")
+            ctx.log.tools += 1
             if tough:
                 ctx.meter.add(ctx.cfg["detection"]["lab_tool"])
             ctx.spend("tool")
@@ -309,6 +322,8 @@ def play_password(ctx: MissionContext, params: dict[str, Any]) -> None:
     ctx.objective = "Recover the passphrase"
     ctx.help_text = "Marks: + right place, ~ elsewhere in the password, . not in it."
     ctx.ui.box("PASSPHRASE", p.clues() + [ctx.ui.paint(f"{p.attempts} attempts.", "dim")])
+    chain = ChainLog("Passphrase", p.par, noun="guess")
+    ctx.log.chains.append(chain)
     while not p.solved:
         if p.remaining <= 0:
             raise MissionFailed("Account locked: no attempts left.")
@@ -319,8 +334,12 @@ def play_password(ctx: MissionContext, params: dict[str, Any]) -> None:
             ctx.ui.warn(err)
             continue
         guess = raw.strip().upper()
-        careful = all(password.feedback(guess, g) == m for g, m in p.history)
+        clash = next((i for i, (g, m) in enumerate(p.history, 1) if password.feedback(guess, g) != m), None)
+        careful = clash is None
         marks = p.guess(raw)
+        chain.used, chain.solved = len(p.history), p.solved
+        if clash is not None:
+            chain.careless.append((chain.used, clash))
         ctx.spend()
         if p.solved:
             used = len(p.history)
@@ -342,17 +361,20 @@ def play_network(ctx: MissionContext, params: dict[str, Any]) -> None:
     m = network.generate(ctx.rng.fork("network"), params.get("target", "DATABASE"), params.get("hidden", 1),
                          params.get("locks", 1 if tough else 0))
     scan_cost = ctx.cfg["detection"]["network_scan"] if tough else 0
+    ctx.log.tough = tough
     ctx.objective = f"Map the network and route to {m.target}"
     ctx.help_text = ("'scan' reveals the next layer (costs ticks" + (" and detection" if tough else "")
                      + "). 'routes' lists paths. 'route N' commits; locked nodes must be cracked first. "
                      "'map' draws the map. 'use scanner' reveals hidden nodes with no detection.")
     ctx.puzzle, ctx.stage_kind = m, "network"
     plan = iter(m.solver_commands())
+    ctx.log.scans_needed = m.solver_commands().count("scan")
     while True:
         ctx.hud()
         cmd = ctx.ask("net", lambda: next(plan, "route 1")).lower()
         if cmd == "scan":
             found = m.scan()
+            ctx.log.scans += 1
             ctx.spend("scan")
             if scan_cost:
                 ctx.meter.add(scan_cost * (2 if set(found) & m.hidden else 1))
@@ -375,15 +397,26 @@ def play_network(ctx: MissionContext, params: dict[str, Any]) -> None:
             except (ValueError, IndexError):
                 ctx.ui.warn("Pick a route number from 'routes'.")
                 continue
+            best = _best_route(m)
             for node in r.locked:
                 unlock_node(ctx, node)
-            ctx.meter.add(network.route_detection(r.rating, ctx.rng.fork("route"), ctx.cfg["detection"]))
+            added = network.route_detection(r.rating, ctx.rng.fork("route"), ctx.cfg["detection"])
+            ctx.log.route = {"label": network.route_label(r).replace("*", ""), "rating": r.rating,
+                             "added": added, "best_label": network.route_label(best),
+                             "best_rating": best.rating, "best_locked": bool(best.locked)}
+            ctx.meter.add(added)
             ctx.spend()
             ctx.found_hidden = m.found_hidden()
             ctx.ui.ok(f"Routed via {network.route_label(r).replace('*', '')} ({r.rating} risk).")
             return
         else:
             ctx.ui.warn("Commands: scan, map, routes, route N.")
+
+
+def _best_route(m: network.NetworkMap) -> network.Route:
+    """Safest route on the fully mapped network: what the debrief compares against."""
+    full = network.NetworkMap(dict(m.edges), set(m.hidden), m.target, set(m.nodes), m.scans, set(m.locked))
+    return full.routes()[0]
 
 
 def unlock_node(ctx: MissionContext, node: str) -> None:
@@ -424,12 +457,15 @@ def play_escape(ctx: MissionContext, params: dict[str, Any]) -> None:
         ctx.ui.say(f"[{seq.ticks_left} ticks] {rnd.prompt}", "warn")
         for i, opt in enumerate(rnd.options, 1):
             ctx.ui.say(f"  {i}. {opt}")
+        kind = rnd.kind
         ok = seq.answer(ctx.ask("escape", seq.solver_answer))
         ctx.spend("escape_round")
         if not ok:
+            ctx.log.misses.append(kind)
             ctx.ui.warn("Missed. The countdown keeps running.")
             ctx.meter.add(ctx.cfg["detection"]["escape_fail"])
             ctx.check()
+    ctx.log.rounds = len(seq.rounds)
     ctx.ui.ok("Clean exit.")
 
 
@@ -456,6 +492,7 @@ def play_shell(ctx: MissionContext, params: dict[str, Any]) -> None:
             ctx.ui.info(ctx.help_text)
             continue
         ctx.spend()
+        ctx.log.commands += 1
         if verb == "scan":
             found = True
             ctx.ui.say(f"  host found: {SHELL_HOST}", "accent")
@@ -508,7 +545,19 @@ def run_stages(ctx: MissionContext, stages: list[dict[str, Any]], start: int = 0
         ctx.patrol_rate = float(params.get("patrol", 0))
         if ctx.patrol_rate:
             ctx.ui.warn("Security patrol active: detection climbs with every tick.")
-        player(ctx, params)
+        ctx.log = StageLog(stage["type"], stage.get("label", stage["type"].title()))
+        before = (ctx.ticks, ctx.meter.level, ctx.wrong_guesses)
+        try:
+            player(ctx, params)
+            ctx.log.cleared = True
+        finally:
+            ctx.log.ticks = ctx.ticks - before[0]
+            ctx.log.detection = ctx.meter.level - before[1]
+            ctx.log.wrong = ctx.wrong_guesses - before[2]
+            ctx.logs.append(ctx.log)
+            if ctx.debrief:
+                facts, tips = summarize(ctx.log, ctx.cfg["detection"])
+                screens.stage_debrief(ctx.ui, n + 1, len(stages), ctx.log, facts, tips)
         ctx.solved[stage["type"]] = ctx.solved.get(stage["type"], 0) + 1
         ctx.patrol_rate = 0.0
         ctx.puzzle, ctx.stage_kind = None, ""
@@ -556,6 +605,7 @@ class MissionResult:
     items_used: list[str]
     bonus_credits: int
     aborted: bool = False
+    stages: list[StageLog] = field(default_factory=list)
 
     @property
     def ghost(self) -> bool:
@@ -579,10 +629,16 @@ def evaluate_optionals(mission: Mission, ctx: MissionContext) -> list[str]:
 
 def run_mission(ui: UI, rng: GameRNG, cfg: dict[str, Any], mission: Mission, difficulty: str = "normal",
                 inventory: Inventory | None = None, checkpoint: dict[str, Any] | None = None,
-                between: Callable[[MissionContext, int], None] | None = None) -> MissionResult:
-    """Play a whole mission (optionally resuming a checkpoint) and return the result."""
+                between: Callable[[MissionContext, int], None] | None = None,
+                debrief: bool = True) -> MissionResult:
+    """Play a whole mission (optionally resuming a checkpoint) and return the result.
+
+    With ``debrief`` each stage ends with a short report, and a run of several stages
+    ends with a summary table. The logs are on ``MissionResult.stages`` either way.
+    """
     ctx = MissionContext(ui, rng, cfg, difficulty, mission.grace_ticks, mission.max_ticks,
                          inventory=inventory, events=mission.events)
+    ctx.debrief = debrief
     start = 0
     if checkpoint:
         start = int(checkpoint.get("stage", 0))
@@ -597,6 +653,9 @@ def run_mission(ui: UI, rng: GameRNG, cfg: dict[str, Any], mission: Mission, dif
         success, reason = False, exc.reason
     except MissionAborted:
         success, reason, aborted = False, "Mission aborted by operator.", True
+    if debrief and len(ctx.logs) > 1:
+        screens.run_summary(ui, ctx.logs, biggest_leak(ctx.logs), cfg["detection"])
     return MissionResult(success, reason, ctx.ticks, ctx.meter.peak, ctx.wrong_guesses,
                          evaluate_optionals(mission, ctx) if success else [], dict(ctx.solved),
-                         list(ctx.items_used), ctx.bonus_credits if success else 0, aborted)
+                         list(ctx.items_used), ctx.bonus_credits if success else 0, aborted,
+                         list(ctx.logs))
