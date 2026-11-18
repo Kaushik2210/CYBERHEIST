@@ -1,11 +1,11 @@
 """Statistics counters and achievement unlocks."""
-from core.rng import GameRNG
-from core.state import load_config
-from interface.theme import Theme
-from interface.ui import UI, ScriptedIO
-from missions.mission_runner import MissionContext, run_stages
-from systems.achievements import ACHIEVEMENTS, AchievementTracker, notify
-from systems.statistics import Statistics
+from cyberheist.core.rng import GameRNG
+from cyberheist.core.state import load_config
+from cyberheist.interface.theme import Theme
+from cyberheist.interface.ui import UI, ScriptedIO
+from cyberheist.missions.mission_runner import MissionContext, run_stages
+from cyberheist.systems.achievements import ACHIEVEMENTS, AchievementTracker, notify
+from cyberheist.systems.statistics import Statistics
 
 CFG = load_config()
 

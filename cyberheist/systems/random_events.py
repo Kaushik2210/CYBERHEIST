@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.rng import GameRNG
+from cyberheist.core.rng import GameRNG
 
 EVENT_ORDER = ("firewall_update", "security_patrol", "encrypted_backup", "suspicious_traffic",
                "hidden_intel", "exposed_vulnerability", "anonymous_message")

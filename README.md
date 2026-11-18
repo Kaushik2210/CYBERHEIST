@@ -17,7 +17,7 @@ networking and no real tool or target anywhere in the code.
 </p>
 
 > **Status:** the engine, all challenge types except extraction, the systems and the
-> full menu are built and tested. The 10-mission campaign and the data-extraction challenge (`challenges/extraction.py`) are **not written
+> full menu are built and tested. The 10-mission campaign and the data-extraction challenge (`cyberheist/challenges/extraction.py`) are **not written
 > yet**, but missions can now be written as plain TOML files (see
 > [Adding the campaign](#adding-the-campaign)). See [Known limitations](#known-limitations).
 
@@ -58,7 +58,7 @@ Captured from real game runs with `python tools/screenshots.py`.
   date plus a puzzle version (seed `2026111801` is 18 Nov 2026, version 1). It works even
   before the campaign is installed.
 - **Versioned daily puzzles.** If an update changes which puzzles a date produces,
-  `DAILY_VERSION` in `systems/daily.py` goes up. Each version gets new seeds and its own
+  `DAILY_VERSION` in `cyberheist/systems/daily.py` goes up. Each version gets new seeds and its own
   score boards, so scores only compare runs that faced the same puzzles. A fingerprint
   test fails with a reminder if generation changes without a bump.
 - **Best score per seed.** Each daily run is scored: 1000 base, minus 5 per tick over
@@ -76,21 +76,25 @@ The quickest way is [pipx](https://pipx.pypa.io/), which installs the game in it
 environment and gives you a `cyberheist` command:
 
 ```bash
-pipx install git+https://github.com/Kaushik2210/CYBERHEIST
+pipx install cyberheist
 ```
 ```bash
 cyberheist
 ```
 
-To pin the first release, add `@v0.1.0` to the URL. To update later:
+Plain `pip install cyberheist` in a virtual environment works too, and so does
+`python -m cyberheist`. Everything lives in one `cyberheist` package, so it won't clash
+with other installed packages. To update later:
 
 ```bash
 pipx upgrade cyberheist
 ```
 
-You can also run it straight from a clone with `python main.py`. Prefer pipx (or a
-virtual environment) over a global `pip install`: the game ships top-level modules with
-generic names (`core`, `config`, `database`, …) that could clash with other packages.
+To install the latest code from GitHub instead of PyPI:
+
+```bash
+pipx install git+https://github.com/Kaushik2210/CYBERHEIST
+```
 
 ## Development setup
 
@@ -123,7 +127,7 @@ pip install -r requirements-dev.txt
 ## Launch
 
 ```bash
-python main.py
+python -m cyberheist
 ```
 
 (or `cyberheist` if you installed with pipx; the flags are the same)
@@ -169,29 +173,29 @@ Black market: `buy N`, `equip N`, `unequip N`, `b`. Up to 2 passives equipped.
 
 | Spec | Where | Status |
 |---|---|---|
-| §0 stdlib only, Windows ANSI, never crash on bad input | `interface/theme.py`, `core/game.py` (`_guarded`) | Done |
-| §1 layout, settings.json balance | `config/settings.json` | Done |
-| §2 tick clock, seeded RNG, detection meter, solvability, difficulty | `missions/mission_runner.py`, `core/rng.py`, `challenges/detection.py` | Done |
-| §3 boot, logo with ASCII fallback, registration, 01–08 menu, briefing, HUD, map, results, stats, pause, `b`/`?`, themes, `NO_COLOR`, size warning, optional bell | `interface/`, `core/game.py` | Done |
-| §4 profile, 8 ranks, rewards, Ghost/Speed bonuses | `core/player.py`, `core/progression.py` | Done |
-| §5A network mapping | `challenges/network.py` | Done |
-| §5B firewall | `challenges/firewall.py` | Done |
-| §5C encryption lab (6 types, plus a layered hex-over-Caesar cipher) | `challenges/encryption.py` | Done |
-| §5D password | `challenges/password.py` | Done |
-| §5E detection monitor | `challenges/detection.py` | Done |
-| §5F data extraction | `challenges/extraction.py` | **Not written** |
-| §5G escape sequence | `challenges/escape.py` | Done |
-| §6 10-mission campaign | `missions/campaign/*.toml` | **Not written** (file format, loader, checker, runner, rewards and unlock order are ready) |
-| §7 black market, inventory, equip limit | `systems/black_market.py`, `systems/inventory.py` | Done |
-| §8 random events (fair) | `systems/random_events.py` | Done |
-| §9 achievements | `systems/achievements.py` | Done |
-| §10 SQLite save, migrations, integrity check, quarantine, Ctrl+C save, manual save | `database/` | Done |
+| §0 stdlib only, Windows ANSI, never crash on bad input | `cyberheist/interface/theme.py`, `cyberheist/core/game.py` (`_guarded`) | Done |
+| §1 layout, settings.json balance | `cyberheist/config/settings.json` | Done |
+| §2 tick clock, seeded RNG, detection meter, solvability, difficulty | `cyberheist/missions/mission_runner.py`, `cyberheist/core/rng.py`, `cyberheist/challenges/detection.py` | Done |
+| §3 boot, logo with ASCII fallback, registration, 01–08 menu, briefing, HUD, map, results, stats, pause, `b`/`?`, themes, `NO_COLOR`, size warning, optional bell | `cyberheist/interface/`, `cyberheist/core/game.py` | Done |
+| §4 profile, 8 ranks, rewards, Ghost/Speed bonuses | `cyberheist/core/player.py`, `cyberheist/core/progression.py` | Done |
+| §5A network mapping | `cyberheist/challenges/network.py` | Done |
+| §5B firewall | `cyberheist/challenges/firewall.py` | Done |
+| §5C encryption lab (6 types, plus a layered hex-over-Caesar cipher) | `cyberheist/challenges/encryption.py` | Done |
+| §5D password | `cyberheist/challenges/password.py` | Done |
+| §5E detection monitor | `cyberheist/challenges/detection.py` | Done |
+| §5F data extraction | `cyberheist/challenges/extraction.py` | **Not written** |
+| §5G escape sequence | `cyberheist/challenges/escape.py` | Done |
+| §6 10-mission campaign | `cyberheist/missions/campaign/*.toml` | **Not written** (file format, loader, checker, runner, rewards and unlock order are ready) |
+| §7 black market, inventory, equip limit | `cyberheist/systems/black_market.py`, `cyberheist/systems/inventory.py` | Done |
+| §8 random events (fair) | `cyberheist/systems/random_events.py` | Done |
+| §9 achievements | `cyberheist/systems/achievements.py` | Done |
+| §10 SQLite save, migrations, integrity check, quarantine, Ctrl+C save, manual save | `cyberheist/database/` | Done |
 | §11 tests | `tests/` | Done for everything that exists |
 
 ## Adding the campaign
 
 Missions are plain TOML files, one per mission, so you can write them without touching
-Python. The game reads `missions/campaign/` and then `~/.cyberheist/missions/`:
+Python. The game reads `cyberheist/missions/campaign/` and then `~/.cyberheist/missions/`:
 
 ```toml
 id = 1

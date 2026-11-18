@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from itertools import product
 from typing import Callable
 
-from core.rng import GameRNG
+from cyberheist.core.rng import GameRNG
 
 WORDLIST = [
     "ORBIT", "PIXEL", "VAPOR", "RADAR", "LASER", "SONAR", "NEXUS", "GLYPH",

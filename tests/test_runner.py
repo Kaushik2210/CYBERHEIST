@@ -1,12 +1,12 @@
 """Mission runner: stage loops, clock, detection and failure conditions."""
 import pytest
 
-from challenges import firewall
-from core.rng import GameRNG
-from core.state import MissionFailed, load_config
-from interface.theme import Theme
-from interface.ui import UI, ScriptedIO
-from missions.mission_runner import MissionContext, run_stages
+from cyberheist.challenges import firewall
+from cyberheist.core.rng import GameRNG
+from cyberheist.core.state import MissionFailed, load_config
+from cyberheist.interface.theme import Theme
+from cyberheist.interface.ui import UI, ScriptedIO
+from cyberheist.missions.mission_runner import MissionContext, run_stages
 
 CFG = load_config()
 ALL_STAGES = [
@@ -72,7 +72,7 @@ def test_overtime_past_grace_adds_detection():
 
 
 def test_lab_tools_cost_detection_in_tough_mode_only():
-    from challenges import encryption
+    from cyberheist.challenges import encryption
     seed = 4
     for difficulty, expected in (("normal", 2.0), ("easy", 0.0)):
         tough = difficulty != "easy"
@@ -84,7 +84,7 @@ def test_lab_tools_cost_detection_in_tough_mode_only():
 
 
 def test_layered_stage_with_unhex_and_shift():
-    from challenges import encryption
+    from cyberheist.challenges import encryption
     seed = 6
     p = encryption.generate(GameRNG(seed).fork("cipher-layered"), "layered", 3, tough=True)
     io = ScriptedIO(["unhex", f"shift {p.shift}", p.answer])
@@ -106,7 +106,7 @@ def test_firewall_tightness_follows_difficulty():
 
 
 def test_network_scans_cost_detection_in_tough_mode_only():
-    from challenges import network
+    from cyberheist.challenges import network
     for difficulty in ("easy", "normal"):
         m = network.generate(GameRNG(2).fork("network"), "DATABASE", 1, 0 if difficulty == "easy" else 1)
         open_route = next(i for i, r in enumerate(_mapped_routes(m), 1) if not r.locked)
@@ -121,13 +121,13 @@ def test_network_scans_cost_detection_in_tough_mode_only():
 
 
 def _mapped_routes(m):
-    from challenges import network
+    from cyberheist.challenges import network
     full = network.NetworkMap(dict(m.edges), set(m.hidden), m.target, set(m.nodes), locked=set(m.locked))
     return full.routes()
 
 
 def test_locked_route_requires_cracking_the_node():
-    from challenges import network
+    from cyberheist.challenges import network
     seed = 5
     m = network.generate(GameRNG(seed).fork("network"), "DATABASE", 1, 1)
     node = sorted(_mapped_routes(m)[0].locked)[0]
@@ -141,7 +141,7 @@ def test_locked_route_requires_cracking_the_node():
 
 
 def test_failing_a_node_lock_fails_the_mission():
-    from challenges import network
+    from cyberheist.challenges import network
     seed = 5
     m = network.generate(GameRNG(seed).fork("network"), "DATABASE", 1, 1)
     node = sorted(_mapped_routes(m)[0].locked)[0]
@@ -166,7 +166,7 @@ def test_password_toughness_follows_difficulty():
 
 
 def test_memory_rounds_clear_the_screen_before_asking():
-    from challenges import escape
+    from cyberheist.challenges import escape
     seed = 3
     seq = escape.generate(GameRNG(seed).fork("escape"), 4, 4, tough=True)
     inputs = []
@@ -192,7 +192,7 @@ def test_escape_toughness_follows_difficulty():
         io = ScriptedIO(autopilot=True)
         ctx = make_ctx(io, 8, difficulty=difficulty)
         run_stages(ctx, [{"type": "escape", "params": {"rounds": 6}}])
-        from challenges import escape
+        from cyberheist.challenges import escape
         seq = escape.generate(GameRNG(8).fork("escape"), 6, 4 + max(0, ctx.diff["attempt_bonus"]),
                               tough=difficulty != "easy")
         assert {r.kind for r in seq.rounds} <= kinds
@@ -215,7 +215,7 @@ def test_careful_firewall_probes_cost_half_detection():
 
 
 def test_careful_password_guesses_cost_half_detection():
-    from challenges import password
+    from cyberheist.challenges import password
     seed = 7
     p = password.generate(GameRNG(seed).fork("password"), 8, 2, 4, 5, 6, sum_clue=True, margin=2)
     wrong_guess = "".join({"W": "A", "D": "0", "S": p.symbols[0]}[m] for m in p.mask)

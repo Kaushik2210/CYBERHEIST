@@ -1,14 +1,14 @@
 """Random events: seeding, effects, fairness caps and Signal Mask."""
 import copy
 
-from challenges import encryption
-from core.rng import GameRNG
-from core.state import load_config
-from interface.theme import Theme
-from interface.ui import UI, ScriptedIO
-from missions.mission_runner import MissionContext, run_stages
-from systems.inventory import Inventory
-from systems.random_events import EVENT_ORDER, EventEngine
+from cyberheist.challenges import encryption
+from cyberheist.core.rng import GameRNG
+from cyberheist.core.state import load_config
+from cyberheist.interface.theme import Theme
+from cyberheist.interface.ui import UI, ScriptedIO
+from cyberheist.missions.mission_runner import MissionContext, run_stages
+from cyberheist.systems.inventory import Inventory
+from cyberheist.systems.random_events import EVENT_ORDER, EventEngine
 
 CFG = load_config()
 

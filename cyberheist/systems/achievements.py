@@ -4,7 +4,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 
-from systems.statistics import Statistics
+from cyberheist.systems.statistics import Statistics
 
 
 @dataclass(frozen=True)

@@ -1,8 +1,8 @@
 """Black market purchases, funds checks, equip limits and consumable use counts."""
-from core.player import Player
-from core.state import load_config
-from systems.black_market import BlackMarket
-from systems.inventory import Inventory
+from cyberheist.core.player import Player
+from cyberheist.core.state import load_config
+from cyberheist.systems.black_market import BlackMarket
+from cyberheist.systems.inventory import Inventory
 
 CFG = load_config()
 ITEMS = CFG["items"]

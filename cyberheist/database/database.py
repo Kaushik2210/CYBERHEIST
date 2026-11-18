@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterator
 
-from core.player import Player
+from cyberheist.core.player import Player
 
 SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
 

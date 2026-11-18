@@ -4,15 +4,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from challenges import encryption, escape, firewall, network, password
-from challenges.detection import DetectionMeter
-from core.rng import GameRNG
-from core.state import MissionAborted, MissionFailed
-from interface import screens
-from interface.ui import UI, visible_len
-from systems.debrief import ChainLog, StageLog, biggest_leak, summarize
-from systems.inventory import Inventory
-from systems.random_events import EventEngine
+from cyberheist.challenges import encryption, escape, firewall, network, password
+from cyberheist.challenges.detection import DetectionMeter
+from cyberheist.core.rng import GameRNG
+from cyberheist.core.state import MissionAborted, MissionFailed
+from cyberheist.interface import screens
+from cyberheist.interface.ui import UI, visible_len
+from cyberheist.systems.debrief import ChainLog, StageLog, biggest_leak, summarize
+from cyberheist.systems.inventory import Inventory
+from cyberheist.systems.random_events import EventEngine
 
 ITEM_ALIASES = {
     "toolkit": "cipher_toolkit", "cipher": "cipher_toolkit",

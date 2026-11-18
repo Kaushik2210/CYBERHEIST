@@ -5,7 +5,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from core.progression import level_for_xp, title_for_level, xp_to_next
+from cyberheist.core.progression import level_for_xp, title_for_level, xp_to_next
 
 ALIAS_RE = re.compile(r"^[A-Za-z0-9_\-]{3,16}$")
 

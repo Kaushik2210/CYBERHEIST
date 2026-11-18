@@ -7,8 +7,8 @@ import time
 from collections import deque
 from typing import Callable, Iterable, Sequence
 
-from core.state import ScriptExhausted
-from interface.theme import Theme
+from cyberheist.core.state import ScriptExhausted
+from cyberheist.interface.theme import Theme
 
 ANSI_RE = re.compile(r"\033\[[0-9;]*m")
 AutoFn = Callable[[], str] | None

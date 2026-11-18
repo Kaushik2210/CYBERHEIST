@@ -7,22 +7,22 @@ import time
 from pathlib import Path
 from typing import Any, Callable
 
-from core.player import Player, validate_alias
-from core.progression import compute_rewards
-from core.rng import GameRNG
-from core.state import MissionAborted, ScriptExhausted, Settings, load_config
-from database.database import SaveManager
-from interface import animations, screens
-from interface.menus import Menu
-from interface.theme import Theme
-from interface.ui import UI, ConsoleIO, ScriptedIO
-from missions.mission_runner import Mission, MissionContext, run_mission
-from systems import adaptive
-from systems.achievements import AchievementTracker, notify
-from systems.daily import DAILY_KEY, DAILY_VERSION, build_daily, daily_seed, run_seed, score_run
-from systems.black_market import BlackMarket
-from systems.inventory import Inventory
-from systems.statistics import Statistics
+from cyberheist.core.player import Player, validate_alias
+from cyberheist.core.progression import compute_rewards
+from cyberheist.core.rng import GameRNG
+from cyberheist.core.state import MissionAborted, ScriptExhausted, Settings, load_config
+from cyberheist.database.database import SaveManager
+from cyberheist.interface import animations, screens
+from cyberheist.interface.menus import Menu
+from cyberheist.interface.theme import Theme
+from cyberheist.interface.ui import UI, ConsoleIO, ScriptedIO
+from cyberheist.missions.mission_runner import Mission, MissionContext, run_mission
+from cyberheist.systems import adaptive
+from cyberheist.systems.achievements import AchievementTracker, notify
+from cyberheist.systems.daily import DAILY_KEY, DAILY_VERSION, build_daily, daily_seed, run_seed, score_run
+from cyberheist.systems.black_market import BlackMarket
+from cyberheist.systems.inventory import Inventory
+from cyberheist.systems.statistics import Statistics
 
 MAIN_OPTIONS = [
     ("new", "NEW GAME"), ("continue", "CONTINUE OPERATION"), ("database", "MISSION DATABASE"),
@@ -35,12 +35,12 @@ def load_campaign() -> tuple[list[Mission], list[str]]:
     """Load the campaign and any problems found while loading it.
 
     missions/mission_data.py wins if it exists. Otherwise the TOML mission files are read
-    from missions/campaign/ and ~/.cyberheist/missions/ (see docs/mission-format.md).
+    from cyberheist/missions/campaign/ and ~/.cyberheist/missions/ (see docs/mission-format.md).
     """
     try:
-        from missions.mission_data import MISSIONS  # type: ignore[import-not-found]
+        from cyberheist.missions.mission_data import MISSIONS  # type: ignore[import-not-found]
     except ImportError:
-        from missions.loader import BUNDLED_DIR, USER_DIR, load_dirs
+        from cyberheist.missions.loader import BUNDLED_DIR, USER_DIR, load_dirs
         res = load_dirs(BUNDLED_DIR, USER_DIR)
         return res.missions, res.problems
     return list(MISSIONS), []
@@ -211,7 +211,9 @@ class Game:
             if self.missions:
                 screens.mission_database(self.ui, self.missions, self.progress)
             else:
-                self.ui.warn("No missions are installed. Add mission files (see docs/mission-format.md).")
+                from cyberheist.missions.loader import FORMAT_URL, USER_DIR
+                self.ui.warn(f"No missions are installed. Add mission files to {USER_DIR}.")
+                self.ui.info(f"Format: {FORMAT_URL}")
             if self.mission_problems:
                 self.ui.warn(f"{len(self.mission_problems)} problem(s) in mission files kept some out. "
                              "Run 'cyberheist --check-missions' for details.")

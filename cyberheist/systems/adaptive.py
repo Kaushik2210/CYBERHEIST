@@ -1,7 +1,7 @@
 """Adaptive difficulty: nudge the setting after runs that were too hard or too easy."""
 from __future__ import annotations
 
-from systems.statistics import Statistics
+from cyberheist.systems.statistics import Statistics
 
 ORDER = ("easy", "normal", "hard")
 FAILS_TO_EASE = 2       # failures in a row before stepping down

@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.rng import GameRNG
+from cyberheist.core.rng import GameRNG
 
 START = "INTERNET"
 BASE_EDGES = [

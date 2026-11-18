@@ -11,11 +11,11 @@ import sys
 from pathlib import Path
 from types import FrameType
 
-from core import __version__
-from core.game import Game
-from database.database import SaveManager
-from interface.theme import enable_ansi
-from interface.ui import ConsoleIO
+from cyberheist import __version__
+from cyberheist.core.game import Game
+from cyberheist.database.database import SaveManager
+from cyberheist.interface.theme import enable_ansi
+from cyberheist.interface.ui import ConsoleIO
 
 DEFAULT_SAVE = Path.home() / ".cyberheist" / "save.db"
 
@@ -47,7 +47,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     enable_ansi()
     if args.check_missions is not None:
-        from missions.loader import BUNDLED_DIR, USER_DIR, check_report
+        from cyberheist.missions.loader import BUNDLED_DIR, USER_DIR, check_report
         dirs = [Path(args.check_missions)] if args.check_missions else [BUNDLED_DIR, USER_DIR]
         lines, ok = check_report(dirs)
         print("\n".join(lines))

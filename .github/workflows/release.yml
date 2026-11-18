@@ -1,0 +1,49 @@
+name: release
+
+# Pushing a tag like v0.2.0 builds the package and publishes it to PyPI.
+# Running it by hand from the Actions tab publishes to TestPyPI instead, as a rehearsal.
+# Publishing uses PyPI trusted publishing, so no API token is stored in the repo.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build twine -r requirements-dev.txt
+      - run: python -m pytest -q
+      - run: python -m build
+      - run: twine check --strict dist/*
+      - name: Tag matches the package version
+        if: github.ref_type == 'tag'
+        run: |
+          version=$(python -c "import cyberheist; print(cyberheist.__version__)")
+          test "v$version" = "${GITHUB_REF_NAME}" || { echo "Tag ${GITHUB_REF_NAME} but package is $version"; exit 1; }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_type == 'tag' && 'pypi' || 'testpypi' }}
+      url: ${{ github.ref_type == 'tag' && 'https://pypi.org/p/cyberheist' || 'https://test.pypi.org/p/cyberheist' }}
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: ${{ github.ref_type == 'tag' && 'https://upload.pypi.org/legacy/' || 'https://test.pypi.org/legacy/' }}

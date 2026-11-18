@@ -1,13 +1,13 @@
 """Daily challenge, best scores per seed, and adaptive difficulty."""
 import datetime as dt
 
-from core.game import Game
-from database.database import SaveManager
-from interface.ui import ScriptedIO
-from missions.mission_runner import MissionResult
-from systems import adaptive
-from systems.daily import DAILY_VERSION, build_daily, daily_seed, run_seed, score_run
-from systems.statistics import Statistics
+from cyberheist.core.game import Game
+from cyberheist.database.database import SaveManager
+from cyberheist.interface.ui import ScriptedIO
+from cyberheist.missions.mission_runner import MissionResult
+from cyberheist.systems import adaptive
+from cyberheist.systems.daily import DAILY_VERSION, build_daily, daily_seed, run_seed, score_run
+from cyberheist.systems.statistics import Statistics
 
 DAY = dt.date(2026, 11, 18)
 
@@ -37,11 +37,11 @@ DAILY_FINGERPRINT = {1: "ebe89426ab50add7"}
 def test_daily_puzzles_unchanged_for_this_version():
     import hashlib
 
-    from core.rng import GameRNG
-    from core.state import load_config
-    from interface.theme import Theme
-    from interface.ui import UI
-    from missions.mission_runner import run_mission
+    from cyberheist.core.rng import GameRNG
+    from cyberheist.core.state import load_config
+    from cyberheist.interface.theme import Theme
+    from cyberheist.interface.ui import UI
+    from cyberheist.missions.mission_runner import run_mission
     io = ScriptedIO(autopilot=True)
     run_mission(UI(io, Theme(color=False), animations=False), GameRNG(run_seed(DAY)), load_config(),
                 build_daily(DAY), "normal")
@@ -122,11 +122,11 @@ def test_difficulty_balance_guard():
     Measured at 15/15, 15/15 and 11/15 over these dates; the thresholds catch regressions
     like the one that dropped Hard to 7/30 before careful probes existed.
     """
-    from core.rng import GameRNG
-    from core.state import load_config
-    from interface.theme import Theme
-    from interface.ui import UI
-    from missions.mission_runner import run_mission
+    from cyberheist.core.rng import GameRNG
+    from cyberheist.core.state import load_config
+    from cyberheist.interface.theme import Theme
+    from cyberheist.interface.ui import UI
+    from cyberheist.missions.mission_runner import run_mission
     cfg = load_config()
     wins = {}
     for diff in ("easy", "normal", "hard"):

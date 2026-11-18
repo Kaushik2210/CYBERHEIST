@@ -5,7 +5,7 @@ import re
 import string
 from dataclasses import dataclass, field
 
-from core.rng import GameRNG
+from cyberheist.core.rng import GameRNG
 
 A = string.ascii_uppercase
 KINDS = ("caesar", "vigenere", "substitution", "binary", "hex", "pattern", "layered")

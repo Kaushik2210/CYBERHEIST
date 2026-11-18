@@ -1,6 +1,6 @@
 """Load campaign missions from TOML files and check them before they reach the game.
 
-One mission per ``.toml`` file. The game reads the bundled ``missions/campaign/`` folder
+One mission per ``.toml`` file. The game reads the bundled ``cyberheist/missions/campaign/`` folder
 and then ``~/.cyberheist/missions/``. See docs/mission-format.md for the format.
 """
 from __future__ import annotations
@@ -10,11 +10,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from challenges import encryption, network
-from missions.mission_runner import STAGES, Mission
+from cyberheist.challenges import encryption, network
+from cyberheist.missions.mission_runner import STAGES, Mission
 
 BUNDLED_DIR = Path(__file__).resolve().parent / "campaign"
 USER_DIR = Path.home() / ".cyberheist" / "missions"
+FORMAT_URL = "https://github.com/Kaushik2210/CYBERHEIST#adding-the-campaign"
 
 REQUIRED: dict[str, type | tuple[type, ...]] = {
     "id": int, "title": str, "tier": str, "intro": str, "briefing": str, "primary": list,
@@ -229,11 +230,11 @@ def playtest(mission: Mission, seeds: range = range(5),
     A mission the autopilot can't clear on Easy is almost certainly broken: the tick
     budget is too small or the locks are too tight for the stages.
     """
-    from core.rng import GameRNG
-    from core.state import load_config
-    from interface.theme import Theme
-    from interface.ui import UI, ScriptedIO
-    from missions.mission_runner import run_mission
+    from cyberheist.core.rng import GameRNG
+    from cyberheist.core.state import load_config
+    from cyberheist.interface.theme import Theme
+    from cyberheist.interface.ui import UI, ScriptedIO
+    from cyberheist.missions.mission_runner import run_mission
     cfg, out = load_config(), {}
     for diff in difficulties:
         wins = 0
@@ -259,7 +260,7 @@ def check_report(dirs: list[Path], seeds: int = 5) -> tuple[list[str], bool]:
             verdict, ok = "TOO HARD", False
         lines.append(f"  {m.mid:02d} {m.title[:30]:<30} {len(m.stages)} stage(s)  autopilot: {cells}  {verdict}")
     if res.files == 0:
-        lines.append("  No mission files found. See docs/mission-format.md to write one.")
+        lines.append(f"  No mission files found. How to write one: {FORMAT_URL}")
     lines.append("All missions look good." if ok and res.missions else
                  "Fix the problems above." if not ok else "")
     return [line for line in lines if line], ok

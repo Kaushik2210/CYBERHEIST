@@ -20,7 +20,13 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: pip install -r requirements-dev.txt
       - run: python -m pytest -q
-      - name: Install as a package and run the command
+      - name: Build, check and install the wheel, then run the command
+        shell: bash
         run: |
-          pip install .
+          pip install build twine
+          python -m build
+          twine check --strict dist/*
+          pip install dist/*.whl
+          cd "$RUNNER_TEMP"
           cyberheist --version
+          python -m cyberheist --check-missions

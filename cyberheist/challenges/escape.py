@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from core.rng import GameRNG
+from cyberheist.core.rng import GameRNG
 
 LANES = ["BLUE", "RED", "GREEN", "AMBER", "VIOLET", "WHITE"]
 WARM = {"RED", "AMBER"}

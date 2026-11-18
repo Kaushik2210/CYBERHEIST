@@ -5,11 +5,11 @@ write them without touching any Python.
 
 The game loads them from two folders, in this order:
 
-1. `missions/campaign/` in the game itself (missions that ship with the game)
+1. `cyberheist/missions/campaign/` in the game itself (missions that ship with the game)
 2. `~/.cyberheist/missions/` (your own missions)
 
 Files are read in name order, so `01-first.toml`, `02-second.toml` and so on works well.
-If `missions/mission_data.py` exists it takes priority and the files are not read.
+If `cyberheist/missions/mission_data.py` exists it takes priority and the files are not read.
 
 Start from [examples/example-mission.toml](examples/example-mission.toml).
 

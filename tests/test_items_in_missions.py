@@ -1,11 +1,11 @@
 """Items inside missions: passives from the loadout, consumables via 'use <item>'."""
-from challenges import encryption, firewall
-from core.rng import GameRNG
-from core.state import load_config
-from interface.theme import Theme
-from interface.ui import UI, ScriptedIO
-from missions.mission_runner import MissionContext, run_stages
-from systems.inventory import Inventory
+from cyberheist.challenges import encryption, firewall
+from cyberheist.core.rng import GameRNG
+from cyberheist.core.state import load_config
+from cyberheist.interface.theme import Theme
+from cyberheist.interface.ui import UI, ScriptedIO
+from cyberheist.missions.mission_runner import MissionContext, run_stages
+from cyberheist.systems.inventory import Inventory
 
 CFG = load_config()
 
@@ -55,7 +55,7 @@ def test_toolkit_hint_costs_no_ticks():
 
 def test_decoder_on_password_reveals_character():
     ctx, inv, io = make(owned=["quantum_decoder"])
-    from challenges import password
+    from cyberheist.challenges import password
     ctx.puzzle, ctx.stage_kind = password.generate(GameRNG(2)), "password"
     assert ctx.use_item("decoder") and "character" in io.text() and inv.uses("quantum_decoder") == 2
 
@@ -70,7 +70,7 @@ def test_no_effect_keeps_charge_and_bad_names_are_handled():
 
 
 def test_scanner_reveals_hidden_nodes_without_detection():
-    from challenges import network
+    from cyberheist.challenges import network
     seed = 4
     m = network.generate(GameRNG(seed).fork("network"), "DATABASE", 2, 1)
     full = network.NetworkMap(dict(m.edges), set(m.hidden), m.target, set(m.nodes), locked=set(m.locked))
@@ -87,7 +87,7 @@ def test_scanner_reveals_hidden_nodes_without_detection():
 
 
 def test_scanner_has_no_effect_outside_network_stages():
-    from challenges import firewall
+    from cyberheist.challenges import firewall
     seed = 4
     p = firewall.generate(GameRNG(seed).fork("firewall"), 6, 4, 8, margin=2)
     ctx, inv, io = make(["use scanner", " ".join(str(i + 1) for i in p.secret)], owned=["data_scanner"], seed=seed)

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from interface.ui import UI, wrap
+from cyberheist.interface.ui import UI, wrap
 
 LOGO = [
     r"  ______   ______  _____ ____  _   _ _____ ___ ____ _____ ",
@@ -144,7 +144,7 @@ def stage_debrief(ui: UI, n: int, total: int, log: Any, facts: list[str], tips: 
 
 def run_summary(ui: UI, logs: list[Any], leak: Any, det: dict[str, Any]) -> None:
     """Table of every stage in the run, plus where most detection came from."""
-    from systems.debrief import summarize
+    from cyberheist.systems.debrief import summarize
     ui.rule()
     ui.say("RUN SUMMARY", "accent")
     rows = [(i, log.label[:18], log.kind, "ok" if log.cleared else "FAILED", log.par_cell, log.wrong,

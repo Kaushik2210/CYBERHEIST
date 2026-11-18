@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from itertools import permutations, product
 from typing import Iterator
 
-from core.rng import GameRNG
+from cyberheist.core.rng import GameRNG
 
 RULE_POOL = [
     "ALLOW_SSH_DECOY", "DENY_RELAY", "DROP_ICMP_ECHO", "PASS_NTP_SYNC",

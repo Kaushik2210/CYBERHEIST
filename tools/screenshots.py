@@ -13,21 +13,21 @@ from typing import Callable
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from challenges import encryption, firewall  # noqa: E402
-from core.game import MAIN_OPTIONS  # noqa: E402
-from core.player import Player  # noqa: E402
-from core.progression import RewardBreakdown  # noqa: E402
-from core.rng import GameRNG  # noqa: E402
-from core.state import load_config  # noqa: E402
-from interface import animations, screens  # noqa: E402
-from interface.menus import Menu  # noqa: E402
-from interface.theme import Theme  # noqa: E402
-from interface.ui import UI  # noqa: E402
-from missions.mission_runner import Mission, MissionContext, MissionResult, run_stages  # noqa: E402
-from systems.achievements import ACHIEVEMENTS, notify  # noqa: E402
-from systems.black_market import BlackMarket  # noqa: E402
-from systems.inventory import Inventory  # noqa: E402
-from systems.statistics import Statistics  # noqa: E402
+from cyberheist.challenges import encryption, firewall  # noqa: E402
+from cyberheist.core.game import MAIN_OPTIONS  # noqa: E402
+from cyberheist.core.player import Player  # noqa: E402
+from cyberheist.core.progression import RewardBreakdown  # noqa: E402
+from cyberheist.core.rng import GameRNG  # noqa: E402
+from cyberheist.core.state import load_config  # noqa: E402
+from cyberheist.interface import animations, screens  # noqa: E402
+from cyberheist.interface.menus import Menu  # noqa: E402
+from cyberheist.interface.theme import Theme  # noqa: E402
+from cyberheist.interface.ui import UI  # noqa: E402
+from cyberheist.missions.mission_runner import Mission, MissionContext, MissionResult, run_stages  # noqa: E402
+from cyberheist.systems.achievements import ACHIEVEMENTS, notify  # noqa: E402
+from cyberheist.systems.black_market import BlackMarket  # noqa: E402
+from cyberheist.systems.inventory import Inventory  # noqa: E402
+from cyberheist.systems.statistics import Statistics  # noqa: E402
 
 OUT = ROOT / "docs" / "screenshots"
 CFG = load_config()
@@ -224,9 +224,9 @@ def scene_complete() -> CaptureIO:
 
 def scene_daily() -> CaptureIO:
     import datetime as dt
-    from interface.ui import ScriptedIO
-    from missions.mission_runner import run_mission
-    from systems.daily import build_daily, daily_seed, run_seed, score_run
+    from cyberheist.interface.ui import ScriptedIO
+    from cyberheist.missions.mission_runner import run_mission
+    from cyberheist.systems.daily import build_daily, daily_seed, run_seed, score_run
     day = dt.date(2026, 11, 18)
     m = build_daily(day)
     quiet = UI(ScriptedIO(autopilot=True), Theme(color=False), animations=False)
@@ -244,7 +244,7 @@ def scene_daily() -> CaptureIO:
 
 def scene_debrief() -> list[str]:
     """A firewall stage with a careless repeat probe, its debrief, and the run summary."""
-    from missions.mission_runner import Mission, run_mission
+    from cyberheist.missions.mission_runner import Mission, run_mission
     seed = 11
     p = firewall.generate(GameRNG(seed).fork("firewall"), 6, 4, 8, margin=3)
     miss = next(c for c in firewall.candidates(6, 4, False) if firewall.score(c, p.secret) == (1, 1))

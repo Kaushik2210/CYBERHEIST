@@ -1,6 +1,6 @@
 """Detection meter: thresholds, failure and gear modifiers."""
-from challenges.detection import DetectionMeter
-from core.state import load_config
+from cyberheist.challenges.detection import DetectionMeter
+from cyberheist.core.state import load_config
 
 CFG = load_config()["detection"]
 

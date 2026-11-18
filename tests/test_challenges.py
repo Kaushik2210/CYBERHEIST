@@ -1,10 +1,10 @@
 """Challenge logic and solvability across seeds."""
 import pytest
 
-from challenges import encryption as enc
-from challenges import firewall
-from challenges import escape as esc
-from challenges import network as net
+from cyberheist.challenges import encryption as enc
+from cyberheist.challenges import firewall
+from cyberheist.challenges import escape as esc
+from cyberheist.challenges import network as net
 
 
 # -- escape ----------------------------------------------------------------------
@@ -88,9 +88,9 @@ def test_escape_accepts_number_or_text_and_penalises_misses():
         assert r.is_correct(r.answer.lower())
     assert not seq.answer("definitely wrong")
     assert seq.failures == 1 and seq.elapsed == 4 and seq.out_of_time
-from challenges import password as pw
-from core.rng import GameRNG
-from core.state import load_config
+from cyberheist.challenges import password as pw
+from cyberheist.core.rng import GameRNG
+from cyberheist.core.state import load_config
 
 
 # -- network ---------------------------------------------------------------------

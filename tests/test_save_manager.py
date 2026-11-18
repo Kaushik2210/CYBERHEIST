@@ -3,8 +3,8 @@ import sqlite3
 
 import pytest
 
-from core.player import Player
-from database.database import LATEST_VERSION, SCHEMA_PATH, SaveManager, SaveCorrupted, _split_sql
+from cyberheist.core.player import Player
+from cyberheist.database.database import LATEST_VERSION, SCHEMA_PATH, SaveManager, SaveCorrupted, _split_sql
 
 
 def open_save(path):

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cyberheist"
-version = "0.1.0"
+dynamic = ["version"]
 description = "CYBERHEIST: THE TERMINAL BREAK-IN, an ASCII cyberpunk puzzle game for the terminal"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -29,18 +29,21 @@ dev = ["pytest>=8"]
 [project.urls]
 Homepage = "https://github.com/Kaushik2210/CYBERHEIST"
 Changelog = "https://github.com/Kaushik2210/CYBERHEIST/blob/main/CHANGELOG.md"
+Issues = "https://github.com/Kaushik2210/CYBERHEIST/issues"
 
 [project.scripts]
-cyberheist = "main:main"
+cyberheist = "cyberheist.main:main"
 
-[tool.setuptools]
-py-modules = ["main"]
-packages = ["challenges", "config", "core", "database", "interface", "missions", "systems"]
+[tool.setuptools.dynamic]
+version = { attr = "cyberheist.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["cyberheist*"]
 
 [tool.setuptools.package-data]
-config = ["settings.json"]
-database = ["schema.sql"]
-missions = ["campaign/*.toml"]
+"cyberheist.config" = ["settings.json"]
+"cyberheist.database" = ["schema.sql"]
+"cyberheist.missions" = ["campaign/*.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

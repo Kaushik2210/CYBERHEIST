@@ -5,8 +5,8 @@ import datetime as dt
 from dataclasses import dataclass
 from typing import Any
 
-from core.rng import GameRNG
-from missions.mission_runner import Mission, MissionResult
+from cyberheist.core.rng import GameRNG
+from cyberheist.missions.mission_runner import Mission, MissionResult
 
 CIPHERS = ("caesar", "vigenere", "substitution", "layered", "pattern", "hex")
 

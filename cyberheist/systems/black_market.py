@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.player import Player
-from systems.inventory import Inventory
+from cyberheist.core.player import Player
+from cyberheist.systems.inventory import Inventory
 
 
 class BlackMarket:

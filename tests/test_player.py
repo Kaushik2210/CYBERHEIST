@@ -1,9 +1,9 @@
 """Player profile: XP to level, reputation, counters and alias validation."""
 import pytest
 
-from core.player import Player, validate_alias
-from core.progression import level_for_xp, title_for_level, xp_to_next
-from core.state import load_config
+from cyberheist.core.player import Player, validate_alias
+from cyberheist.core.progression import level_for_xp, title_for_level, xp_to_next
+from cyberheist.core.state import load_config
 
 PROG = load_config()["progression"]
 TH, TITLES = PROG["xp_thresholds"], PROG["level_titles"]

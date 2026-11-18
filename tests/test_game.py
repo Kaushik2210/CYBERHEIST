@@ -1,10 +1,10 @@
 """End-to-end game loop with a scripted input harness. Uses small test missions."""
 import pytest
 
-from core.game import Game
-from database.database import SaveManager
-from interface.ui import ScriptedIO
-from missions.mission_runner import Mission
+from cyberheist.core.game import Game
+from cyberheist.database.database import SaveManager
+from cyberheist.interface.ui import ScriptedIO
+from cyberheist.missions.mission_runner import Mission
 
 SHELL = {"type": "shell", "label": "Orientation"}
 SHELL_INPUTS = ["scan", "connect train-01", "cat welcome.txt"]
@@ -117,7 +117,7 @@ def test_ctrl_c_saves_and_checkpoint_resumes(tmp_path):
 
 
 def test_end_of_input_saves_and_quits_without_inventing_an_alias(tmp_path, monkeypatch):
-    from interface import ui as ui_mod
+    from cyberheist.interface import ui as ui_mod
     feed = iter(["﻿Neo_01"])
 
     def fake_input(prompt=""):

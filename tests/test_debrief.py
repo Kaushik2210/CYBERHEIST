@@ -1,11 +1,11 @@
 """Run debrief: what each stage cost, how it compared with the solver, and one tip."""
-from challenges import firewall
-from core.rng import GameRNG
-from core.state import load_config
-from interface.theme import Theme
-from interface.ui import UI, ScriptedIO, visible_len
-from missions.mission_runner import Mission, run_mission
-from systems.debrief import ChainLog, StageLog, biggest_leak, summarize
+from cyberheist.challenges import firewall
+from cyberheist.core.rng import GameRNG
+from cyberheist.core.state import load_config
+from cyberheist.interface.theme import Theme
+from cyberheist.interface.ui import UI, ScriptedIO, visible_len
+from cyberheist.missions.mission_runner import Mission, run_mission
+from cyberheist.systems.debrief import ChainLog, StageLog, biggest_leak, summarize
 
 CFG = load_config()
 DET = CFG["detection"]

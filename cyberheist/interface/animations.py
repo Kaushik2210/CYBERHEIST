@@ -1,7 +1,7 @@
 """Short animations. Everything is skipped when the animation setting is off."""
 from __future__ import annotations
 
-from interface.ui import UI
+from cyberheist.interface.ui import UI
 
 BOOT_LINES = [
     "Loading kernel modules", "Mounting virtual filesystems", "Spinning up sandbox network",

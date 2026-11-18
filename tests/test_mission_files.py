@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-import main
-from core.game import Game
-from interface.ui import ScriptedIO
-from missions import loader
+from cyberheist import main
+from cyberheist.core.game import Game
+from cyberheist.interface.ui import ScriptedIO
+from cyberheist.missions import loader
 
 EXAMPLE = Path(__file__).resolve().parent.parent / "docs" / "examples" / "example-mission.toml"
 

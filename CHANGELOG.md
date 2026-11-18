@@ -19,6 +19,15 @@ All notable changes to CYBERHEIST are recorded here. The format follows
   the biggest detection leak. A new Debrief setting turns it off.
 - Screenshot of the debrief (`docs/screenshots/12-debrief.svg`).
 
+### Changed
+- **One package:** all modules now live under a single `cyberheist` package, so
+  installing the game no longer adds generic top-level modules like `core` or
+  `config`. Run it with `cyberheist` or `python -m cyberheist`. Any custom
+  `mission_data.py` imports need the `cyberheist.` prefix.
+- **PyPI:** a release workflow publishes tagged versions to PyPI with trusted
+  publishing (`pipx install cyberheist`). CI now builds the wheel, checks it with
+  twine, and runs the installed command on every OS.
+
 ## [0.1.0] - 2026-11-18
 
 First public release. The engine, every challenge type except data extraction, all

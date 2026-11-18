@@ -7,14 +7,14 @@ rules the codebase follows, and how to get a change merged.
 
 The two biggest open pieces are:
 
-- **The campaign** (`missions/campaign/*.toml`): ten missions written as TOML files,
+- **The campaign** (`cyberheist/missions/campaign/*.toml`): ten missions written as TOML files,
   no Python needed. The format is in [docs/mission-format.md](docs/mission-format.md).
   Run `cyberheist --check-missions` before opening a pull request.
-- **Data extraction** (`challenges/extraction.py`): the file-extraction challenge
+- **Data extraction** (`cyberheist/challenges/extraction.py`): the file-extraction challenge
   described in the README. Missions 4, 5, 8 and 10 need it. The Data Scanner currently
   reveals hidden network nodes and should also reveal hidden files once this exists.
 
-Bug fixes, balance tweaks in `config/settings.json`, and accessibility or layout
+Bug fixes, balance tweaks in `cyberheist/config/settings.json`, and accessibility or layout
 improvements are welcome too. For anything large, open an issue first so we can agree
 on the approach before you write a lot of code.
 
@@ -43,7 +43,7 @@ python -m pytest -q
 Use a throwaway save while testing so you don't touch your real profile:
 
 ```bash
-python main.py --save-path test-save.db --seed 42
+python -m cyberheist --save-path test-save.db --seed 42
 ```
 
 ## Ground rules
@@ -55,9 +55,9 @@ python main.py --save-path test-save.db --seed 42
 - **Python 3.11+, type hints and docstrings** on every public function and class.
 - **Never crash on bad input.** Validate what the player types and answer with a
   helpful message.
-- **Randomness goes through `core/rng.py`**, so `--seed` keeps runs reproducible. Use
+- **Randomness goes through `cyberheist/core/rng.py`**, so `--seed` keeps runs reproducible. Use
   `rng.fork("label")` for a new subsystem so it doesn't shift other rolls.
-- **Balance numbers live in `config/settings.json`**, not in code.
+- **Balance numbers live in `cyberheist/config/settings.json`**, not in code.
 - **Keep the layout within 80×24.** `tests/test_ui.py` checks screen widths.
 
 ## Tests
@@ -80,7 +80,7 @@ python -m pytest -q
 CI runs the suite on Windows, Linux and macOS with Python 3.11, 3.12 and 3.13.
 
 - **Changing puzzle generation?** If `test_daily_puzzles_unchanged_for_this_version`
-  fails, your change alters the daily runs. Bump `DAILY_VERSION` in `systems/daily.py`
+  fails, your change alters the daily runs. Bump `DAILY_VERSION` in `cyberheist/systems/daily.py`
   and add the new fingerprint the test prints. This keeps old and new daily scores apart.
 
 ## Screenshots
@@ -115,3 +115,23 @@ Open an issue with:
 
 By contributing, you agree that your contributions are licensed under the
 [MIT License](LICENSE).
+
+## Releasing (maintainers)
+
+Releases go to [PyPI](https://pypi.org/p/cyberheist) through
+`.github/workflows/release.yml`, using trusted publishing, so no API token is stored
+anywhere.
+
+1. Bump `__version__` in `cyberheist/__init__.py` and move the changelog's
+   "Unreleased" section under the new version number.
+2. Run the tests, then commit.
+3. Tag and push: `git tag -a v0.2.0 -m "CYBERHEIST 0.2.0"` and `git push origin v0.2.0`.
+   The workflow tests, builds and checks the package, makes sure the tag matches the
+   version, and publishes it.
+
+To rehearse, run the workflow by hand from the Actions tab: it publishes to TestPyPI.
+
+One-time setup: on pypi.org (and test.pypi.org) add a pending trusted publisher for the
+project `cyberheist` with owner `Kaushik2210`, repository `CYBERHEIST`, workflow
+`release.yml`, and environment `pypi` (`testpypi` on TestPyPI). Then create the
+`pypi` and `testpypi` environments under the repository's Settings → Environments.

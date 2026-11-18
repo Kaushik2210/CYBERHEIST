@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Sequence
 
-from interface.ui import UI
+from cyberheist.interface.ui import UI
 
 
 class Menu:

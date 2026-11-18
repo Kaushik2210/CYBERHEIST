@@ -1,12 +1,12 @@
 """Theme fallback, NO_COLOR, animation timing, menus and 80-column layout."""
-from core.player import Player
-from core.state import Settings, load_config
-from interface import animations, screens
-from interface.menus import Menu
-from interface.theme import Theme
-from interface.ui import UI, ScriptedIO, visible_len
-from systems.inventory import Inventory
-from systems.statistics import Statistics
+from cyberheist.core.player import Player
+from cyberheist.core.state import Settings, load_config
+from cyberheist.interface import animations, screens
+from cyberheist.interface.menus import Menu
+from cyberheist.interface.theme import Theme
+from cyberheist.interface.ui import UI, ScriptedIO, visible_len
+from cyberheist.systems.inventory import Inventory
+from cyberheist.systems.statistics import Statistics
 
 CFG = load_config()
 
@@ -25,7 +25,7 @@ class TimedIO(ScriptedIO):
 def test_ascii_fallback_when_encoding_cannot_print_box_chars():
     class Ascii:
         encoding = "ascii"
-    from interface.theme import supports_unicode
+    from cyberheist.interface.theme import supports_unicode
     assert not supports_unicode(Ascii())
     io = ScriptedIO()
     UI(io, Theme(unicode=False, color=False)).box("T", ["x"])
@@ -68,8 +68,8 @@ def test_screens_fit_80_columns():
 
 
 def test_mission_hud_fits_80_columns():
-    from core.rng import GameRNG
-    from missions.mission_runner import MissionContext
+    from cyberheist.core.rng import GameRNG
+    from cyberheist.missions.mission_runner import MissionContext
     io = ScriptedIO()
     ctx = MissionContext(UI(io, Theme(color=True, unicode=True), animations=False), GameRNG(1), CFG,
                          max_ticks=1000)
@@ -81,8 +81,8 @@ def test_mission_hud_fits_80_columns():
 
 
 def test_network_routes_table_fits_80_columns():
-    from challenges import network
-    from core.rng import GameRNG
+    from cyberheist.challenges import network
+    from cyberheist.core.rng import GameRNG
     worst = 0
     for seed in range(100):
         for target in ("DATABASE", "BACKUP"):
@@ -102,12 +102,15 @@ def test_version_is_consistent_everywhere(capsys):
 
     import pytest
 
-    import main
-    from core import __version__
+    import tomllib
+
+    from cyberheist import __version__, main
     root = Path(__file__).resolve().parent.parent
-    pyproject = re.search(r'^version = "([^"]+)"', (root / "pyproject.toml").read_text(), re.M).group(1)
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+    assert project["project"]["dynamic"] == ["version"]
+    assert project["tool"]["setuptools"]["dynamic"]["version"] == {"attr": "cyberheist.__version__"}
     changelog = re.search(r"^## \[(\d[^\]]*)\]", (root / "CHANGELOG.md").read_text(encoding="utf-8"), re.M).group(1)
-    assert __version__ == pyproject == changelog
+    assert __version__ == changelog
     with pytest.raises(SystemExit):
         main.parse_args(["--version"])
     assert capsys.readouterr().out.strip() == f"cyberheist {__version__}"
