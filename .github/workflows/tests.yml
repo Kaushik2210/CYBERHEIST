@@ -20,3 +20,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: pip install -r requirements-dev.txt
       - run: python -m pytest -q
+      - name: Install as a package and run the command
+        run: |
+          pip install .
+          cyberheist --version

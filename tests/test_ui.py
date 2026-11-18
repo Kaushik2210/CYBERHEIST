@@ -96,6 +96,23 @@ def test_network_routes_table_fits_80_columns():
     assert worst <= 80, worst
 
 
+def test_version_is_consistent_everywhere(capsys):
+    import re
+    from pathlib import Path
+
+    import pytest
+
+    import main
+    from core import __version__
+    root = Path(__file__).resolve().parent.parent
+    pyproject = re.search(r'^version = "([^"]+)"', (root / "pyproject.toml").read_text(), re.M).group(1)
+    changelog = re.search(r"^## \[([^\]]+)\]", (root / "CHANGELOG.md").read_text(encoding="utf-8"), re.M).group(1)
+    assert __version__ == pyproject == changelog
+    with pytest.raises(SystemExit):
+        main.parse_args(["--version"])
+    assert capsys.readouterr().out.strip() == f"cyberheist {__version__}"
+
+
 def test_settings_validation():
     s = Settings(CFG["defaults"], {"theme": "pink", "difficulty": "hard", "animation_speed": 99})
     assert s.get("theme") == "green" and s.get("difficulty") == "hard" and s.get("animation_speed") == 1.0

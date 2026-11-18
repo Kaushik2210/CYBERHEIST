@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "cyberheist"
 version = "0.1.0"
@@ -6,10 +10,36 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
+authors = [{ name = "Kaushik" }]
+keywords = ["game", "terminal", "ascii", "puzzle", "cyberpunk"]
+classifiers = [
+    "Environment :: Console",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Topic :: Games/Entertainment :: Puzzle Games",
+]
 dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+
+[project.urls]
+Homepage = "https://github.com/Kaushik2210/CYBERHEIST"
+Changelog = "https://github.com/Kaushik2210/CYBERHEIST/blob/main/CHANGELOG.md"
+
+[project.scripts]
+cyberheist = "main:main"
+
+[tool.setuptools]
+py-modules = ["main"]
+packages = ["challenges", "config", "core", "database", "interface", "missions", "systems"]
+
+[tool.setuptools.package-data]
+config = ["settings.json"]
+database = ["schema.sql"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

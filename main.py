@@ -1,6 +1,7 @@
 """CYBERHEIST: THE TERMINAL BREAK-IN. Entry point.
 
-Usage: python main.py [--seed N] [--reset-save] [--save-path PATH]
+Usage: python main.py [--seed N] [--reset-save] [--save-path PATH] [--version]
+   or: cyberheist [same flags]   (after installing with pipx or pip)
 """
 from __future__ import annotations
 
@@ -10,6 +11,7 @@ import sys
 from pathlib import Path
 from types import FrameType
 
+from core import __version__
 from core.game import Game
 from database.database import SaveManager
 from interface.theme import enable_ansi
@@ -20,7 +22,8 @@ DEFAULT_SAVE = Path.home() / ".cyberheist" / "save.db"
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse command-line flags."""
-    ap = argparse.ArgumentParser(description="CYBERHEIST: THE TERMINAL BREAK-IN")
+    ap = argparse.ArgumentParser(prog="cyberheist", description="CYBERHEIST: THE TERMINAL BREAK-IN")
+    ap.add_argument("--version", action="version", version=f"cyberheist {__version__}")
     ap.add_argument("--seed", type=int, default=None, help="seed for a reproducible run (quote it in bug reports)")
     ap.add_argument("--reset-save", action="store_true",
                     help="move the current save aside (save.reset-<timestamp>.db) and start fresh")

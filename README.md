@@ -4,6 +4,7 @@
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)
 ![No dependencies](https://img.shields.io/badge/dependencies-stdlib%20only-brightgreen)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/Kaushik2210/CYBERHEIST)](https://github.com/Kaushik2210/CYBERHEIST/releases)
 
 **THINK LIKE A HACKER. MOVE LIKE A GHOST. LEAVE NO TRACE.**
 
@@ -56,10 +57,33 @@ Captured from real game runs with `python tools/screenshots.py`.
 - **Adaptive difficulty.** Turn it on in SETTINGS. Two failures in a row step the
   difficulty down. Three clean wins in a row (peak detection under 40%) step it up.
 
-## Setup
+## Install and play
 
-Python 3.11 or newer. The game uses the standard library only; pytest is needed only
-to run the tests.
+Python 3.11 or newer. No other dependencies.
+
+The quickest way is [pipx](https://pipx.pypa.io/), which installs the game in its own
+environment and gives you a `cyberheist` command:
+
+```bash
+pipx install git+https://github.com/Kaushik2210/CYBERHEIST
+```
+```bash
+cyberheist
+```
+
+To pin the first release, add `@v0.1.0` to the URL. To update later:
+
+```bash
+pipx upgrade cyberheist
+```
+
+You can also run it straight from a clone with `python main.py`. Prefer pipx (or a
+virtual environment) over a global `pip install`: the game ships top-level modules with
+generic names (`core`, `config`, `database`, …) that could clash with other packages.
+
+## Development setup
+
+pytest is the only extra needed, and only to run the tests.
 
 Windows (PowerShell or CMD):
 
@@ -91,8 +115,11 @@ pip install -r requirements-dev.txt
 python main.py
 ```
 
+(or `cyberheist` if you installed with pipx; the flags are the same)
+
 | Flag | What it does |
 |---|---|
+| `--version` | Print the installed version. |
 | `--seed N` | Reproducible run. The seed of each mission is shown on the profile screen; include it in bug reports. |
 | `--reset-save` | Moves the current save to `save.reset-<timestamp>.db` and starts fresh. Nothing is deleted. |
 | `--save-path PATH` | Use a different save file. Default: `~/.cyberheist/save.db`. |
