@@ -199,6 +199,34 @@ def test_escape_toughness_follows_difficulty():
         assert ("<screen cleared>" in io.output) == any(r.memorize for r in seq.rounds)
 
 
+def test_careful_firewall_probes_cost_half_detection():
+    seed = 5
+    p = firewall.generate(GameRNG(seed).fork("firewall"), 6, 4, 8, margin=2)
+    answer = " ".join(str(i + 1) for i in p.secret)
+    first = next(" ".join(map(str, g)) for g in ((1, 2, 3, 4), (2, 3, 4, 5)) if " ".join(map(str, g)) != answer)
+    # Probe 1 is careful (no clues yet). Repeating it contradicts its own feedback: careless.
+    io = ScriptedIO([first, first, answer])
+    ctx = make_ctx(io, seed, grace_ticks=300, max_ticks=600)
+    run_stages(ctx, [{"type": "firewall", "params": {"pool": 6, "length": 4, "attempts": 8}}])
+    wrong = CFG["detection"]["wrong_guess"]
+    assert ctx.meter.peak == wrong * CFG["detection"]["careful_probe"] + wrong
+    out = io.text()
+    assert "careful probe" in out and "careless probe" in out
+
+
+def test_careful_password_guesses_cost_half_detection():
+    from challenges import password
+    seed = 7
+    p = password.generate(GameRNG(seed).fork("password"), 8, 2, 4, 5, 6, sum_clue=True, margin=2)
+    wrong_guess = "".join({"W": "A", "D": "0", "S": p.symbols[0]}[m] for m in p.mask)
+    assert wrong_guess != p.secret
+    io = ScriptedIO([wrong_guess, wrong_guess, p.secret])
+    ctx = make_ctx(io, seed, grace_ticks=300, max_ticks=600)
+    run_stages(ctx, [{"type": "password", "params": {}}])
+    wrong = CFG["detection"]["wrong_guess"]
+    assert ctx.meter.peak == wrong * CFG["detection"]["careful_probe"] + wrong
+
+
 def test_neural_accelerator_cuts_tick_costs():
     ctx = make_ctx(ScriptedIO(), neural=True)
     ctx.spend("scan")

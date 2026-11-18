@@ -88,6 +88,29 @@ def test_daily_challenge_end_to_end_keeps_best(tmp_path):
     sm.close()
 
 
+def test_difficulty_balance_guard():
+    """A logic-perfect autopilot should clear every Easy/Normal daily and most Hard ones.
+
+    Measured at 15/15, 15/15 and 11/15 over these dates; the thresholds catch regressions
+    like the one that dropped Hard to 7/30 before careful probes existed.
+    """
+    from core.rng import GameRNG
+    from core.state import load_config
+    from interface.theme import Theme
+    from interface.ui import UI
+    from missions.mission_runner import run_mission
+    cfg = load_config()
+    wins = {}
+    for diff in ("easy", "normal", "hard"):
+        wins[diff] = 0
+        for k in range(15):
+            day = dt.date(2026, 11, 1) + dt.timedelta(days=k)
+            r = run_mission(UI(ScriptedIO(autopilot=True), Theme(color=False), animations=False),
+                            GameRNG(daily_seed(day)), cfg, build_daily(day), diff)
+            wins[diff] += r.success
+    assert wins["easy"] == 15 and wins["normal"] == 15 and wins["hard"] >= 10, wins
+
+
 def test_adaptive_setting_changes_difficulty_in_game(tmp_path):
     g, io = run_game(tmp_path, ["Neo_01", "7", "7", "b", "8"])                    # turn adaptive on
     assert g.settings.get("adaptive") is True

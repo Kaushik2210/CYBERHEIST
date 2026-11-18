@@ -77,11 +77,23 @@ class MissionContext:
             self.events.on_ticks(self, before, self.ticks)
         self.check()
 
-    def wrong(self) -> None:
-        """Penalty for a wrong guess: detection and extra ticks."""
+    def wrong(self, careful: bool = False) -> None:
+        """Penalty for a wrong guess: detection and extra ticks.
+
+        A careful guess (one that fits every clue seen so far) costs only
+        ``careful_probe`` times the usual detection; a careless one costs the full amount.
+        """
         self.wrong_guesses += 1
-        self.meter.wrong_guess()
+        scale = self.cfg["detection"]["careful_probe"] if careful else 1.0
+        self.meter.add(self.cfg["detection"]["wrong_guess"] * scale)
         self.spend("wrong_guess")
+
+    def probe_note(self, careful: bool) -> None:
+        """Tell the player whether their guess was a careful probe."""
+        if careful:
+            self.ui.say("  careful probe: fits every clue so far, detection halved", "dim")
+        else:
+            self.ui.say("  careless probe: contradicts earlier feedback, full detection", "warn")
 
     def check(self) -> None:
         """Raise MissionFailed when a failure condition is met."""
@@ -221,6 +233,7 @@ def crack_chain(ctx: MissionContext, p: firewall.FirewallPuzzle, name: str) -> N
         if isinstance(parsed, str):
             ctx.ui.warn(parsed)
             continue
+        careful = all(firewall.score(parsed, g) == fb for g, fb in p.history)
         exact, partial = p.guess(parsed)
         ctx.spend()
         if p.solved:
@@ -230,7 +243,8 @@ def crack_chain(ctx: MissionContext, p: firewall.FirewallPuzzle, name: str) -> N
             ctx.ui.ok(f"{name} chain accepted in {used} probe(s). Solver par: {p.par}. {verdict}")
         else:
             ctx.ui.say(f"  exact {exact}  partial {partial}", "accent")
-            ctx.wrong()
+            ctx.probe_note(careful)
+            ctx.wrong(careful)
 
 
 def play_cipher(ctx: MissionContext, params: dict[str, Any]) -> None:
@@ -298,14 +312,17 @@ def play_password(ctx: MissionContext, params: dict[str, Any]) -> None:
         if err:
             ctx.ui.warn(err)
             continue
+        guess = raw.strip().upper()
+        careful = all(password.feedback(guess, g) == m for g, m in p.history)
         marks = p.guess(raw)
         ctx.spend()
         if p.solved:
             used = len(p.history)
             ctx.ui.ok(f"Passphrase accepted in {used} guess(es). Solver par: {p.par}.")
         else:
-            ctx.ui.say(f"  {raw.upper()}\n  {marks}", "accent")
-            ctx.wrong()
+            ctx.ui.say(f"  {guess}\n  {marks}", "accent")
+            ctx.probe_note(careful)
+            ctx.wrong(careful)
 
 
 def play_network(ctx: MissionContext, params: dict[str, Any]) -> None:

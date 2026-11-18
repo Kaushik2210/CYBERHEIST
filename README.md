@@ -172,10 +172,6 @@ option (using small test missions, since the campaign is not installed).
 
 ## Known limitations
 
-- **Hard is currently too punishing.** With the tighter firewall, a 5-slot chain with
-  repeated rules takes about 7–9 probes. At +10% detection per wrong probe on Hard,
-  most runs hit 100% before the escape. The autopilot clears 30/30 daily runs on Easy
-  and Normal, but only 7/30 on Hard.
 
 - **No campaign yet.** Missions 1–10 are not defined, so CONTINUE and MISSION DATABASE
   report that no missions are installed. The scripted campaign test from §11 cannot
@@ -198,6 +194,14 @@ pull request.
 [MIT](LICENSE) © 2026 Kaushik
 
 ## Engineering decisions
+
+- **Careful probes cost half.** A wrong firewall or password guess normally adds 8%
+  detection. If the guess fits every clue you've seen so far, it's a *careful probe*
+  and adds only 4% (`careful_probe` in `settings.json`). A guess that contradicts
+  earlier feedback still costs the full 8%, and the game tells you which kind you made.
+  This rewards logic over guessing. Before this change, a logic-perfect autopilot
+  cleared only 7 of 30 Hard daily runs; now it clears 26 of 30 (average peak detection
+  74%), and Easy and Normal stay at 30 of 30. `tests/test_replay.py` guards the balance.
 
 - **Memory-based escape on Normal and Hard.** Rounds no longer show you the answer:
   a code (5 characters, 6 on Hard) or a lane sequence (3 lanes, 4 on Hard) appears,

@@ -22,6 +22,7 @@
   },
   "detection": {
     "wrong_guess": 8,
+    "careful_probe": 0.5,
     "overtime_per_tick": 1,
     "alarm": 15,
     "risky_route_min": 10,
